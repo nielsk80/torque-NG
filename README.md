@@ -17,27 +17,32 @@ Our goal is to provide a lightweight, modern, and highly-performant alternative 
 
 # Torque-NG (Next Generation)
 
-[![License](https://img.shields.io/badge/License-OpenPBS_2.3-blue.svg)](LICENSE)
+[![License](https://img.shields.io/badge/License-TORQUE_v2.5-blue.svg)](LICENSE)
 [![C++ Standard](https://img.shields.io/badge/C%2B%2B-17-orange.svg)](https://en.cppreference.com/w/cpp/17)
 [![Platform](https://img.shields.io/badge/Platform-Linux-lightgrey.svg)](https://www.kernel.org/)
 
-**Torque-NG** is a modernized, high-performance successor to the TORQUE Resource Manager. This project brings the legacy codebase into the 2020s, focusing on C++17 standards, container-native isolation, and heterogeneous hardware awareness for x86 and ARM64.
+## ⚠️ Project Status: Experimental Alpha
+**Torque-NG is currently in active initial development and is NOT ready for production use.** We are in the process of a "Grand Refactor," transitioning the core libraries from legacy C to C++17. While the foundational `Libutils` now compiles with modern topology and cgroup support, the higher-level daemon logic (MOM/Server) is still being integrated. Use this code for development, testing, and architectural review only.
 
 ---
 
-## 📖 Overview
+## 📖 Project Overview & Vision
 
-TORQUE (Terascale Open-source Resource and Queue Manager) is an open-source project based on the original PBS resource manager developed by NASA, LLNL, and MRJ. Over decades, it has incorporated significant advancements in scalability, fault-tolerance, and security from a global community of contributors.
+[cite_start]**Torque-NG** (Next Generation) is an ambitious revival of the original TORQUE Resource Manager[cite: 1]. [cite_start]TORQUE has historically been a cornerstone of HPC, originating from the original PBS resource manager developed by NASA, LLNL, and MRJ[cite: 2].
 
-**Torque-NG** continues this legacy by reviving the stagnant upstream repository. While the original project provided a robust foundation, modern HPC requirements—such as hybrid CPU architectures and Cgroup V2—require a fundamental shift in the core architecture. Torque-NG is the evolution of that foundation, refactored for the modern era.
+[cite_start]It incorporates significant advancements in scalability, fault-tolerance, and security contributed by organizations such as OSC, NCSA, TeraGrid, the U.S. Dept of Energy, USC, and many others[cite: 3, 4]. However, as hardware has evolved—introducing hybrid P/E-core architectures and ARM-based clusters—and Linux kernel resource management moved to the Unified Cgroup V2 hierarchy, the original codebase became a victim of technical debt. 
 
-
+### Our Mission
+Our goal is to provide a lightweight, modern, and highly-performant alternative to complex schedulers, specifically optimized for:
+* **Modern Linux Kernels**: Native, first-class integration with Cgroup V2.
+* **Heterogeneous Compute**: Intelligent placement on systems with mixed core efficiencies (Intel Hybrid, ARM big.LITTLE).
+* **Developer Productivity**: A clean, C++17 codebase that is easy to audit, extend, and maintain.
 
 ---
 
 ## 🌟 Key Modernizations
 
-* **C++17 Architecture**: Replaced legacy C-style utilities (`u_*`) and manual memory management with RAII, standard library containers, and thread-safe patterns.
+* **C++17 Architecture**: Replaced legacy C-style utilities and manual memory management with RAII, standard library containers, and thread-safe patterns.
 * **Heterogeneous Topology Awareness**: Integrated with **hwloc 2.x** to intelligently schedule across **Intel/AMD Hybrid cores (P/E-cores)** and **ARM64 (big.LITTLE/Clusters)**.
 * **Linux Cgroup V2**: Native support for the unified control group hierarchy, providing superior resource isolation and management.
 * **ARM64 Optimization**: First-class support for ARM-based clusters (AWS Graviton, Ampere Altra), ensuring efficient task placement on complex cache hierarchies.
