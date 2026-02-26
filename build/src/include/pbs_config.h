@@ -1,0 +1,3 @@
+#define HAVE_SYS_TYPES_H
+#define HAVE_SYS_STAT_H
+#define HAVE_UNISTD_H

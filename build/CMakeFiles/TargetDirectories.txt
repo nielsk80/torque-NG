@@ -1,0 +1,11 @@
+/home/ken-nielson/opensrc/torque/torque/build/CMakeFiles/edit_cache.dir
+/home/ken-nielson/opensrc/torque/torque/build/CMakeFiles/rebuild_cache.dir
+/home/ken-nielson/opensrc/torque/torque/build/src/lib/Liblog/CMakeFiles/torque_log.dir
+/home/ken-nielson/opensrc/torque/torque/build/src/lib/Liblog/CMakeFiles/edit_cache.dir
+/home/ken-nielson/opensrc/torque/torque/build/src/lib/Liblog/CMakeFiles/rebuild_cache.dir
+/home/ken-nielson/opensrc/torque/torque/build/src/lib/Libutils/CMakeFiles/pbs_utils.dir
+/home/ken-nielson/opensrc/torque/torque/build/src/lib/Libutils/CMakeFiles/edit_cache.dir
+/home/ken-nielson/opensrc/torque/torque/build/src/lib/Libutils/CMakeFiles/rebuild_cache.dir
+/home/ken-nielson/opensrc/torque/torque/build/src/resmom/CMakeFiles/pbs_mom.dir
+/home/ken-nielson/opensrc/torque/torque/build/src/resmom/CMakeFiles/edit_cache.dir
+/home/ken-nielson/opensrc/torque/torque/build/src/resmom/CMakeFiles/rebuild_cache.dir

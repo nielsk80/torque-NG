@@ -3,7 +3,6 @@
 #include "pbs_error_db.h"
 #include "pbs_error.h"
 
-#ifdef PENABLE_LINUX_CGROUPS
 #include "machine.hpp"
 
 #ifdef MIC
@@ -261,4 +260,3 @@ void PCI_Device::initializeGpu(
   }
 #endif
 
-#endif

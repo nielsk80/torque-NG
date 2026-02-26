@@ -413,7 +413,7 @@ int trq_main(
 
   parse_command_line(argc, argv);
 
-  if (IamRoot() == 0)
+  if (!IamRoot())
     {
     printf("This program must be run as root!!!\n");
     return(PBSE_IVALREQ);

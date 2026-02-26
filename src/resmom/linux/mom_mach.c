@@ -67,12 +67,10 @@
 #include "mom_config.h"
 #include "timer.hpp"
 
-#ifdef PENABLE_LINUX_CGROUPS
 #include "machine.hpp"
 #include "trq_cgroups.h"
 #include "complete_req.hpp"
 #include "req.hpp"
-#endif
 
 #ifdef USE_RESOURCE_PLUGIN
 #include "trq_plugin_api.h"
@@ -127,10 +125,8 @@ extern  int     LOGLEVEL;
 #define TBL_INC 200            /* initial proc table */
 #define PMEMBUF_SIZE  2048
 
-#ifdef PENABLE_LINUX_CGROUPS
 extern Machine this_node;
 extern char    mom_alias[];
-#endif
 
 proc_stat_t   *proc_array = NULL;
 static int            nproc = 0;
@@ -1120,7 +1116,6 @@ bool injob(
  * adjusted by cputfactor.
  */
 
-#ifndef PENABLE_LINUX_CGROUPS
 
 unsigned long cput_sum(
 
@@ -1198,10 +1193,6 @@ unsigned long cput_sum(
   return((unsigned long)((double)cputime * cputfactor));
   }  /* END cput_sum() */
 
-
-
-
-#else
 #define LOCAL_BUF_SIZE 256
 
 unsigned long cput_sum(
@@ -1300,7 +1291,6 @@ unsigned long cput_sum(
   
   }
 
-#endif /* #ifndef PENABLE_LINUX_CGROUPS */
 
 
 /*

@@ -360,7 +360,6 @@
 #define ATTR_NODE_gpus_str             "numa_gpu_node_str"
 #define ATTR_NODE_mics                 "mics"
 #define ATTR_NODE_micstatus            "mic_status"
-#ifdef PENABLE_LINUX_CGROUPS
 #define ATTR_NODE_total_sockets        "total_sockets"
 #define ATTR_NODE_total_numa_nodes     "total_numa_nodes"
 #define ATTR_NODE_total_cores          "total_cores"
@@ -369,7 +368,6 @@
 #define ATTR_NODE_dedicated_numa_nodes "dedicated_numa_nodes"
 #define ATTR_NODE_dedicated_cores      "dedicated_cores"
 #define ATTR_NODE_dedicated_threads    "dedicated_threads"
-#endif
 
 #define ATTR_job_full_report_time     "job_full_report_time"
 /* additional node "attributes" names */

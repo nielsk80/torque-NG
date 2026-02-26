@@ -4838,7 +4838,7 @@ int setup_program_environment(void)
   int           network_retries = 0;
 
   /* must be started with real and effective uid of 0 */
-  if (IamRoot() == 0)
+  if (!IamRoot())
     {
     return(1);
     }

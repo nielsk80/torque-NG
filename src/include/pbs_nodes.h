@@ -100,16 +100,12 @@
 #include "container.hpp"
 #include "job_usage_info.hpp"
 #include "attribute.h"
-#ifdef PENABLE_LINUX_CGROUPS
 #include "machine.hpp"
-#endif
 #include "runjob_help.hpp"
 #include "attribute.h"
 
-#ifdef NUMA_SUPPORT
 /* NOTE: cpuset support needs hwloc */
 #  include <hwloc.h>
-#endif
 
 #define NUMA_KEYWORD           "numa"
 #define START_GPU_STATUS       "<gpu_status>"
@@ -117,9 +113,7 @@
 #define START_MIC_STATUS       "<mic_status>"
 #define END_MIC_STATUS         "</mic_status>"
 
-#ifdef NUMA_SUPPORT
 #  define MAX_NODE_BOARDS      2048
-#endif  /* NUMA_SUPPORT */
 #ifdef PENABLE_LINUX26_CPUSETS
 #  define TROOTCPUSET_PATH     "/dev/cpuset"
 #  define TBOOTCPUSET_PATH     "/dev/cpuset/boot"
@@ -189,7 +183,6 @@ class gpusubn
 
 
 
-#ifdef NUMA_SUPPORT
 typedef struct nodeboard_t
   {
   int                index;           /* the node's index */
@@ -207,7 +200,6 @@ typedef struct nodeboard_t
   int                gpu_end_index;   /* index of last gpu for this board */
   float              cpuact;
   } nodeboard;
-#endif /* NUMA_SUPPORT */
 
 
 
@@ -315,9 +307,7 @@ public:
                                                        deleted while it is temporarily locked. */
 
   /* numa hardware configuration information */
-#ifdef PENABLE_LINUX_CGROUPS
   Machine                    nd_layout;
-#endif
 
 
   pbsnode();
@@ -550,7 +540,6 @@ enum nodeattr
   ND_ATR_ttl,
   ND_ATR_acl,
   ND_ATR_requestid,
-#ifdef PENABLE_LINUX_CGROUPS
   ND_ATR_total_sockets,
   ND_ATR_total_numa_nodes,
   ND_ATR_total_cores,
@@ -559,7 +548,6 @@ enum nodeattr
   ND_ATR_dedicated_numa_nodes,
   ND_ATR_dedicated_cores,
   ND_ATR_dedicated_threads,
-#endif
   ND_ATR_LAST
   }; /* WARNING: Must be the highest valued enum */
 

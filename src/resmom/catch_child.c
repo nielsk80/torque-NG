@@ -41,9 +41,7 @@
 #include "mom_func.h" /* mom_job_purge */
 #include "mom_job_cleanup.h"
 #include "cray_energy.h"
-#ifdef PENABLE_LINUX_CGROUPS
 #include "complete_req.hpp"
-#endif
 #ifdef ENABLE_CPA
 #include "pbs_cpa.h"
 #endif

@@ -728,9 +728,7 @@ typedef struct job
                                         and tasks from start_process. */
   std::set<pid_t> *ji_sigtermed_processes; // set of pids to which we've sent a SIGTERM
 
-#ifdef PENABLE_LINUX_CGROUPS
   bool             ji_cgroups_created;
-#endif
 
   // Usage information coming from a plug-in
   std::map<std::string, std::string> *ji_custom_usage_info;
@@ -1018,9 +1016,7 @@ typedef struct job_file_delete_info
   unsigned char  has_temp_dir;
   gid_t          gid;
   uid_t          uid;
-#ifdef PENABLE_LINUX_CGROUPS
   bool           cgroups_all_created;
-#endif
   } job_file_delete_info;
 
 

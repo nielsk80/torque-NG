@@ -3,20 +3,24 @@
 #include "license_pbs.h" /* See here for the software license */
 
 #include "log.h"
+#include <string_view>
+#include <string>
 
-int log_init(const char *suffix, const char *hostname);
+int log_init(std::string_view suffix, std::string_view hostname);
+int log_open(std::string_view filename, std::string_view directory);
+int log_open_unlocked(std::string_view filename, std::string_view directory);
 
-int log_open(char *filename, char *directory); 
+int job_log_open(std::string_view filename, std::string_view directory); 
 
-int job_log_open(char *filename, char *directory); 
+void log_err(int errnum, std::string_view routine, std::string_view text); 
 
-void log_err(int errnum, const char *routine, const char *text); 
+void log_ext(int errnum, std::string_view routine, std::string_view text, int severity); 
 
-void log_ext(int errnum, const char *routine, const char *text, int severity); 
+int log_job_record(std::string_view buf);
+int log_job_record_unlocked(std::string_view buf);
 
-int log_job_record(const char *buf);
-
-void log_record(int eventtype, int objclass, const char *objname, const char *text); 
+void log_record(int eventtype, int objclass, std::string_view objname, std::string_view text); 
+void log_record_unlocked(int eventtype, int objclass, std::string_view objname, std::string_view text); 
 
 void log_close(int msg);
 

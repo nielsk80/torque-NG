@@ -1,0 +1,2 @@
+/usr/bin/ar qc libtorque_log.a CMakeFiles/torque_log.dir/chk_file_sec.cpp.o CMakeFiles/torque_log.dir/log_event.cpp.o CMakeFiles/torque_log.dir/pbs_log.cpp.o CMakeFiles/torque_log.dir/pbs_messages.cpp.o CMakeFiles/torque_log.dir/setup_env.cpp.o CMakeFiles/torque_log.dir/safe_log.cpp.o
+/usr/bin/ranlib libtorque_log.a

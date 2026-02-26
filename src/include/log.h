@@ -151,40 +151,54 @@ enum getter_setter { GETV, SETV };
 typedef enum getter_setter SGetter;
 
 extern int LOGLEVEL;
+/* Change these from pthread_mutex_t to std::mutex */
+#ifdef __cplusplus
+#include <mutex>
+#include <string>
+#include <string_view>
+#include <filesystem>
 
-extern long *log_event_mask;
+extern std::mutex log_mutex;
+extern std::mutex job_log_mutex;
+extern std::string log_buffer; // Remove the [LOG_BUF_SIZE]
+#else
+/* Legacy C fallback if still needed for other .c files */
 extern pthread_mutex_t log_mutex;
 extern pthread_mutex_t job_log_mutex;
+extern char log_buffer[LOG_BUF_SIZE];
+#endif
+extern long *log_event_mask;
 
 /* set this to non-zero in calling app if errors go to stderr */
 extern int   chk_file_sec_stderr;
+#ifdef __cplusplus
+extern "C" {
+#endif
 
-/* extern void log_close (int); */
-/* extern void job_log_close (int); */
 void log_err (int, const char *, const char *);
 void log_ext (int, const char *, const char *,int);
 void log_event (int, int, const char *, const char *);
-/* extern int  log_open (char *, char *); */
-/* extern int  job_log_open (char *, char *); */
 void log_record (int, int, const char *, const char *);
 bool log_available(int eventtype);
-/* extern void log_roll (int); */
-/* extern long log_size (void); */
-/* extern long job_log_size (void); */
-/* extern int  log_remove_old (char *,unsigned long); */
-extern char log_buffer[LOG_BUF_SIZE];
 int log_init(const char *suffix, const char *hostname);
 
-/* extern int  IamRoot (void); */
-/* #ifdef __CYGWIN__ */
-/* extern int  IamAdminByName (char *); */
-/* extern int  IamUser (void); */
-/* extern int  IamUserByName (char *); */
-/* #endif  __CYGWIN__ */
+#ifdef __cplusplus
+}
+#endif
 
-int chk_file_sec( const char *path, int isdir, int sticky, int disallow, int fullpath, char *SEMsg);
-/* extern int  setup_env (char *); */
-
+#ifdef __cplusplus
+/* Modern C++17 Prototype */
+int chk_file_sec(
+  const std::filesystem::path& path,
+  bool is_dir,
+  bool allow_sticky,
+  int disallow_mask,
+  bool check_full_path,
+  std::string& error_msg);
+#else
+/* Legacy C Prototype */
+int chk_file_sec(const char *path, int isdir, int sticky, int disallow, int fullpath, char *SEMsg);
+#endif
 /* Event types */
 
 #define PBSEVENT_ERROR  0x0001  /* internal errors       */

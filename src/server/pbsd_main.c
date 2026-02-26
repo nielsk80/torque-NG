@@ -1718,7 +1718,7 @@ int main(
 
   /* if we are not running with real and effective uid of 0, forget it */
 
-  if (IamRoot() == 0)
+  if (!IamRoot())
     {
     return(1);
     }

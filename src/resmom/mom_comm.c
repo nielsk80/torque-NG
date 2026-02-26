@@ -136,9 +136,7 @@
 #include <vector>
 #include "container.hpp"
 #include "trq_cgroups.h"
-#ifdef PENABLE_LINUX_CGROUPS
 #include "complete_req.hpp"
-#endif
 #include "pmix_tracker.hpp"
 #include "pmix_operation.hpp"
 
@@ -221,9 +219,7 @@ extern void free_sisterlist(struct radix_buf **list, int radix);
 extern int open_demux(u_long addr, int    port);
 extern int timeval_subtract( struct timeval *result, struct timeval *x, struct timeval *y);
 int start_process(task *, char **, char **);
-#ifdef PENABLE_LINUX_CGROUPS
 int set_job_cgroup_memory_limits(job *pjob);
-#endif
  
 int allocate_demux_sockets(job *pjob, int flag);
 
@@ -8239,7 +8235,6 @@ err:
 
 
 
-#ifdef PENABLE_LINUX_CGROUPS
 int get_req_and_task_index_from_local_rank(
 
   job          *pjob,
@@ -8277,7 +8272,6 @@ int get_req_and_task_index_from_local_rank(
 
   return(rc);
   } // END get_req_and_task_index_from_local_rank()
-#endif
 
 
 

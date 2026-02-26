@@ -265,7 +265,7 @@ int  get_hostaddr_hostent_af(
       h_errno,
       hstrerror(h_errno));
    /* This is for cases where the client is running this command */
-      if (!log_available(PBSEVENT_SYSTEM))
+      if (!log_available())
         fprintf(stderr, "%s\n", log_buf);
       else
         log_event(PBSEVENT_SYSTEM, PBS_EVENTCLASS_SERVER, __func__, log_buf);

@@ -1,0 +1,2 @@
+/usr/bin/ar qc libutils.a CMakeFiles/utils.dir/machine.cpp.o CMakeFiles/utils.dir/topology.cpp.o CMakeFiles/utils.dir/factory.cpp.o CMakeFiles/utils.dir/cgroup_manager.cpp.o CMakeFiles/utils.dir/strategy.cpp.o CMakeFiles/utils.dir/performance_strategy.cpp.o CMakeFiles/utils.dir/authorized_hosts.cpp.o CMakeFiles/utils.dir/allocation.cpp.o CMakeFiles/utils.dir/user_context.cpp.o CMakeFiles/utils.dir/jsoncpp.cpp.o
+/usr/bin/ranlib libutils.a

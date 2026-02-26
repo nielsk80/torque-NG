@@ -1,0 +1,67 @@
+--- Torque Topology Refactor Test ---
+Initializing Hardware Scan...
+Scan Complete. System Topology detected:
+---------------------------------------
+[Type 0] ID:  0 | Threads: 0/0
+  [Type 1] ID:  0 | Threads: 0/0 | CPUSet: 0x000fffff
+    [Type 0] ID:  0 | Threads: 0/0 | CPUSet: 0x000fffff
+      [Type 0] ID:  0 | Threads: 0/0 | CPUSet: 0x00000003
+        [Type 0] ID:  0 | Threads: 0/0 | CPUSet: 0x00000003
+          [Type 3] ID:  0 | Threads: 0/0 | Efficiency: 1 | CPUSet: 0x00000003
+            [Type 4] ID:  0 | Threads: 0/0 | CPUSet: 0x00000001
+            [Type 4] ID:  1 | Threads: 0/0 | CPUSet: 0x00000002
+      [Type 0] ID:  1 | Threads: 0/0 | CPUSet: 0x0000000c
+        [Type 0] ID:  1 | Threads: 0/0 | CPUSet: 0x0000000c
+          [Type 3] ID:  1 | Threads: 0/0 | Efficiency: 1 | CPUSet: 0x0000000c
+            [Type 4] ID:  2 | Threads: 0/0 | CPUSet: 0x00000004
+            [Type 4] ID:  3 | Threads: 0/0 | CPUSet: 0x00000008
+      [Type 0] ID:  2 | Threads: 0/0 | CPUSet: 0x00000030
+        [Type 0] ID:  2 | Threads: 0/0 | CPUSet: 0x00000030
+          [Type 3] ID:  2 | Threads: 0/0 | Efficiency: 1 | CPUSet: 0x00000030
+            [Type 4] ID:  4 | Threads: 0/0 | CPUSet: 0x00000010
+            [Type 4] ID:  5 | Threads: 0/0 | CPUSet: 0x00000020
+      [Type 0] ID:  3 | Threads: 0/0 | CPUSet: 0x000000c0
+        [Type 0] ID:  3 | Threads: 0/0 | CPUSet: 0x000000c0
+          [Type 3] ID:  3 | Threads: 0/0 | Efficiency: 1 | CPUSet: 0x000000c0
+            [Type 4] ID:  6 | Threads: 0/0 | CPUSet: 0x00000040
+            [Type 4] ID:  7 | Threads: 0/0 | CPUSet: 0x00000080
+      [Type 0] ID:  4 | Threads: 0/0 | CPUSet: 0x00000300
+        [Type 0] ID:  4 | Threads: 0/0 | CPUSet: 0x00000300
+          [Type 3] ID:  4 | Threads: 0/0 | Efficiency: 1 | CPUSet: 0x00000300
+            [Type 4] ID:  8 | Threads: 0/0 | CPUSet: 0x00000100
+            [Type 4] ID:  9 | Threads: 0/0 | CPUSet: 0x00000200
+      [Type 0] ID:  5 | Threads: 0/0 | CPUSet: 0x00000c00
+        [Type 0] ID:  5 | Threads: 0/0 | CPUSet: 0x00000c00
+          [Type 3] ID:  5 | Threads: 0/0 | Efficiency: 1 | CPUSet: 0x00000c00
+            [Type 4] ID: 10 | Threads: 0/0 | CPUSet: 0x00000400
+            [Type 4] ID: 11 | Threads: 0/0 | CPUSet: 0x00000800
+      [Type 0] ID:  6 | Threads: 0/0 | CPUSet: 0x0000f000
+        [Type 0] ID:  6 | Threads: 0/0 | CPUSet: 0x00001000
+          [Type 3] ID:  6 | Threads: 0/0 | Efficiency: 0 | CPUSet: 0x00001000
+            [Type 4] ID: 12 | Threads: 0/0 | CPUSet: 0x00001000
+        [Type 0] ID:  7 | Threads: 0/0 | CPUSet: 0x00002000
+          [Type 3] ID:  7 | Threads: 0/0 | Efficiency: 0 | CPUSet: 0x00002000
+            [Type 4] ID: 13 | Threads: 0/0 | CPUSet: 0x00002000
+        [Type 0] ID:  8 | Threads: 0/0 | CPUSet: 0x00004000
+          [Type 3] ID:  8 | Threads: 0/0 | Efficiency: 0 | CPUSet: 0x00004000
+            [Type 4] ID: 14 | Threads: 0/0 | CPUSet: 0x00004000
+        [Type 0] ID:  9 | Threads: 0/0 | CPUSet: 0x00008000
+          [Type 3] ID:  9 | Threads: 0/0 | Efficiency: 0 | CPUSet: 0x00008000
+            [Type 4] ID: 15 | Threads: 0/0 | CPUSet: 0x00008000
+      [Type 0] ID:  7 | Threads: 0/0 | CPUSet: 0x000f0000
+        [Type 0] ID: 10 | Threads: 0/0 | CPUSet: 0x00010000
+          [Type 3] ID: 10 | Threads: 0/0 | Efficiency: 0 | CPUSet: 0x00010000
+            [Type 4] ID: 16 | Threads: 0/0 | CPUSet: 0x00010000
+        [Type 0] ID: 11 | Threads: 0/0 | CPUSet: 0x00020000
+          [Type 3] ID: 11 | Threads: 0/0 | Efficiency: 0 | CPUSet: 0x00020000
+            [Type 4] ID: 17 | Threads: 0/0 | CPUSet: 0x00020000
+        [Type 0] ID: 12 | Threads: 0/0 | CPUSet: 0x00040000
+          [Type 3] ID: 12 | Threads: 0/0 | Efficiency: 0 | CPUSet: 0x00040000
+            [Type 4] ID: 18 | Threads: 0/0 | CPUSet: 0x00040000
+        [Type 0] ID: 13 | Threads: 0/0 | CPUSet: 0x00080000
+          [Type 3] ID: 13 | Threads: 0/0 | Efficiency: 0 | CPUSet: 0x00080000
+            [Type 4] ID: 19 | Threads: 0/0 | CPUSet: 0x00080000
+---------------------------------------
+Total Threads detected: 0
+Total Memory detected:  0 MB
+FAILURE: Insufficient resources for test job.

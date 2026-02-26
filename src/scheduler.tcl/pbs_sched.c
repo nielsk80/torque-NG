@@ -754,7 +754,7 @@ char *argv[];
   fd_set  fdset;
 
 #ifndef DEBUG
-  if (IamRoot() == 0)
+  if (!IamRoot())
     {
         return (1);
     }

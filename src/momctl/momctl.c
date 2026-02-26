@@ -145,7 +145,7 @@ int main(
   HostList[0]     = '\0';
   ConfigBuf[0] = '\0';
 
-  if (IamRoot() == 0)
+  if (!IamRoot())
     {
     exit(EXIT_FAILURE);
     }

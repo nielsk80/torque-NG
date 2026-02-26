@@ -73,7 +73,11 @@
 #include "pbs_constants.h" /* Long */
 #endif
 #include "list_link.h"
-#include <string>
+#ifdef __cplusplus
+  #include <string>    // Only visible to C++ compiler
+#else
+  #include <string.h>  // Visible to C compiler (legacy)
+#endif
 
 /*
  * This header file contains the definitions for attributes

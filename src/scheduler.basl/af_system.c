@@ -652,7 +652,7 @@ SystemInit(int argc, char *argv[])
   int  gethostname();
 
 #ifndef DEBUG
-  if (IamRoot() == 0)
+  if (!IamRoot())
     {
 	exit(1);
     }
