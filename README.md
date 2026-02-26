@@ -1,3 +1,20 @@
+## ⚠️ Project Status: Experimental Alpha
+**Torque-NG is currently in active initial development and is NOT ready for production use.** We are in the process of a "Grand Refactor," transitioning the core libraries from legacy C to C++17. While the foundational `Libutils` now compiles with modern topology and cgroup support, the higher-level daemon logic (MOM/Server) is still being integrated. Use this code for development, testing, and architectural review only.
+
+---
+
+## 📖 Project Overview & Vision
+
+**Torque-NG** (Next Generation) is an ambitious revival of the original TORQUE Resource Manager. TORQUE has historically been a cornerstone of HPC, originating from NASA's PBS project and enhanced by organizations like LLNL, OSC, and NCSA.
+
+However, as hardware has evolved—introducing hybrid P/E-core architectures and ARM-based clusters—and Linux kernel resource management moved to the Unified Cgroup V2 hierarchy, the original codebase became a victim of technical debt. 
+
+### Our Mission
+Our goal is to provide a lightweight, modern, and highly-performant alternative to complex schedulers like Slurm or PBS Pro, specifically optimized for:
+* **Modern Linux Kernels**: Native, first-class integration with Cgroup V2.
+* **Heterogeneous Compute**: Intelligent placement on systems with mixed core efficiencies (Intel Hybrid, ARM big.LITTLE).
+* **Developer Productivity**: A clean, C++17 codebase that is easy to audit, extend, and maintain.
+
 # Torque-NG (Next Generation)
 
 [![License](https://img.shields.io/badge/License-OpenPBS_2.3-blue.svg)](LICENSE)
