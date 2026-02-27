@@ -67,9 +67,9 @@ To build Torque-NG, you will need:
 ### Building from Source
 
 ```bash
-WARNING! Code is currently under construction. You will be able to clone
-the repository but the CMake configuration is very premature and
-does not yet compile the entire project.
+# WARNING! Code is currently under construction. You will be able to clone
+# the repository but the CMake configuration is very premature and
+# does not yet compile the entire project.
 
 git clone git@github.com:nielsk80/torque-NG.git
 cd torque-NG
