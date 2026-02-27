@@ -5,21 +5,23 @@
 [![Platform](https://img.shields.io/badge/Platform-Linux-lightgrey.svg)](https://www.kernel.org/)
 
 ## ⚠️ Project Status: Experimental Alpha
-[cite_start]**Torque-NG is currently in active initial development and is NOT ready for production use.** We are in the process of a "Grand Refactor," transitioning the core libraries from legacy C to C++17[cite: 1]. While the foundational `Libutils` now compiles with modern topology and cgroup support, the higher-level daemon logic (MOM/Server) is still being integrated. Use this code for development, testing, and architectural review only.
+**Torque-NG is currently in active initial development and is NOT ready for production use.** We are in the process of a "Grand Refactor," transitioning the core libraries from legacy C to C++17. While the foundational `Libutils` now compiles with modern topology and cgroup support, the higher-level daemon logic (MOM/Server) is still being integrated. Use this code for development, testing, and architectural review only.
 
 ---
 
 ## 📖 Project Overview & Vision
 
-[cite_start]**Torque-NG** is an ambitious revival of the original TORQUE Resource Manager[cite: 1]. [cite_start]TORQUE has historically been a cornerstone of HPC, originating from the original PBS resource manager developed by NASA, LLNL, and MRJ[cite: 2].
+[cite_start]Torque-NG (Next Generation) is an ambitious revival of the original TORQUE Resource Manager[cite: 1]. [cite_start]TORQUE has historically been a cornerstone of HPC, originating from the original PBS resource manager developed by NASA, LLNL, and MRJ[cite: 2].
 
-[cite_start]It incorporates significant advancements in scalability, fault-tolerance, and security contributed by organizations such as OSC, NCSA, TeraGrid, the U.S. Dept of Energy, USC, and many others[cite: 3, 4]. However, as hardware has evolved—introducing hybrid P/E-core architectures and ARM-based clusters—and Linux kernel resource management moved to the Unified Cgroup V2 hierarchy, the original codebase became a victim of technical debt. 
+[cite_start]The project incorporates significant advancements in scalability, fault-tolerance, and security contributed by organizations such as OSC, NCSA, TeraGrid, the U.S. Dept of Energy, USC, and many others[cite: 3, 4]. However, as hardware has evolved—introducing hybrid P/E-core architectures and ARM-based clusters—and Linux kernel resource management moved to the Unified Cgroup V2 hierarchy, the original codebase became a victim of technical debt. 
 
 ### Our Mission
 Our goal is to provide a lightweight, modern, and highly-performant alternative to complex schedulers, specifically optimized for:
 * **Modern Linux Kernels**: Native, first-class integration with Cgroup V2.
 * **Heterogeneous Compute**: Intelligent placement on systems with mixed core efficiencies (Intel Hybrid, ARM big.LITTLE).
 * **Developer Productivity**: A clean, C++17 codebase that is easy to audit, extend, and maintain.
+
+
 
 ---
 
