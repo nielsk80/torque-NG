@@ -1,0 +1,56 @@
+syntax = "proto3";
+
+package torque_ng;
+
+import "google/protobuf/timestamp.proto";
+
+// Represents the IntRes, SizeRes, and StringRes structs
+message ResourceList {
+  map<string, int64> int_resources = 1;    // For cpu_count, nodes, etc.
+  map<string, uint64> size_resources = 2; // For mem, vmem (in bytes)
+  map<string, string> string_resources = 3; // For walltime, software licenses
+}
+
+message Job {
+  // Identification
+  string job_id = 1;
+  string job_name = 2;
+  
+  // Ownership and Permissions
+  string owner_name = 3;
+  string effective_user_name = 4;
+  string effective_group_name = 5;
+  string email_addr = 6;
+
+  // State and Scheduling
+  enum JobState {
+    TRANSIT = 0;
+    QUEUED = 1;
+    HELD = 2;
+    WAITING = 3;
+    RUNNING = 4;
+    EXITING = 5;
+    COMPLETE = 6;
+  }
+  JobState state = 7;
+  int32 priority = 8;
+  
+  // Flags (Replacing ints with bools for clarity)
+  bool is_rerunnable = 9;
+  bool is_interactive = 10;
+
+  // Timestamps
+  google.protobuf.Timestamp created_at = 11;
+
+  // File Staging
+  string stage_in_files = 12;
+  string stage_out_files = 13;
+
+  // Resource Tracking (The complex structs from your C code)
+  ResourceList resources_requested = 14;
+  ResourceList resources_used = 15;
+
+  // Location Metadata (Replacing void pointers)
+  string server_id = 16;
+  string queue_name = 17;
+}

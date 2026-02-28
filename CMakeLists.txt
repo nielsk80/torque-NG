@@ -12,6 +12,8 @@ check_include_file("sys/types.h" HAVE_SYS_TYPES_H)
 check_include_file("sys/stat.h" HAVE_SYS_STAT_H)
 check_include_file("unistd.h" HAVE_UNISTD_H)
 
+find_package(Protobuf REQUIRED)
+
 # This tells CMake to look for a template file and create the real header
 configure_file(
     "${CMAKE_SOURCE_DIR}/pbs_config.h.in"
@@ -20,12 +22,19 @@ configure_file(
 
 # Ensure the build directory's include path is visible
 include_directories("${CMAKE_BINARY_DIR}/src/include")
+include_directories(${Protobuf_INCLUDE_DIRS})
+# The generated headers will be in the binary directory
+include_directories("${CMAKE_BINARY_DIR}/src/proto")
+# Link Protobuf globally for now to simplify the refactor
+link_libraries(protobuf::libprotobuf)
 
 # --- 2. System-wide Header Search ---
 include_directories(${CMAKE_SOURCE_DIR}/src/include)
 
 # --- 3. Add Subdirectories in order of dependency ---
 # We build the library first, then the MOM daemon
+add_subdirectory(src/proto)
 add_subdirectory(src/lib/Liblog)
 add_subdirectory(src/lib/Libutils)
 add_subdirectory(src/resmom)
+
