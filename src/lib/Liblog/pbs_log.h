@@ -1,47 +1,44 @@
-#ifndef _PBS_LOG_H
-#define _PBS_LOG_H
-#include "license_pbs.h" /* See here for the software license */
+/*
+ * torque-NG: Next Generation Resource Manager
+ *
+ * Copyright (c) 2026 Kenneth Nielson.
+ * Portions Copyright (c) 1999-2000 Veridian Information Solutions, Inc.
+ * Licensed under the OpenPBS v2.3 Software License.
+ * SPDX-License-Identifier: OpenPBS-2.3
+ */
 
-#include "log.h"
+#pragma once
+
+#include "LogTypes.hpp"
 #include <string_view>
 #include <string>
+#include <vector>
+#include <system_error>
 
-int log_init(std::string_view suffix, std::string_view hostname);
-int log_open(std::string_view filename, std::string_view directory);
-int log_open_unlocked(std::string_view filename, std::string_view directory);
+/**
+ * Legacy Bridge Functions
+ * These allow existing TORQUE code to function while using the SafeLog engine.
+ */
 
-int job_log_open(std::string_view filename, std::string_view directory); 
+// Primary logging entry point
+void log_record(int eventtype, int objclass, std::string_view objname, std::string_view text);
 
-void log_err(int errnum, std::string_view routine, std::string_view text); 
-
-void log_ext(int errnum, std::string_view routine, std::string_view text, int severity); 
-
-int log_job_record(std::string_view buf);
-int log_job_record_unlocked(std::string_view buf);
-
-void log_record(int eventtype, int objclass, std::string_view objname, std::string_view text); 
-void log_record_unlocked(int eventtype, int objclass, std::string_view objname, std::string_view text); 
-
+// Lifecycle management
+std::error_code log_open(std::string_view filename, std::string_view directory);
 void log_close(int msg);
 
-void job_log_close(int msg);
+// Hostname and IP resolution for daemon identification
+void log_set_hostname_sharelogging(std::string_view server_name, std::string_view server_port);
 
-int log_remove_old(char *DirPath, unsigned long ExpireTime); 
+// File metrics
+long log_size();
 
-void log_roll(int max_depth);
+/**
+ * Modern Utility Functions
+ */
 
-long log_size(void);
-
-long job_log_size(void);
-
-void print_trace(int socknum);
-
-void log_get_set_eventclass(int *objclass, SGetter action);
-
-void log_format_trq_timestamp(char *time_formatted_str, unsigned int buflen);
-
-void log_set_hostname_sharelogging(const char *server_name, const char *server_port);
-
-void log_get_host_port(char *host_n_port, size_t s);
-
-#endif /* _PBS_LOG_H */
+/**
+ * get_c_envp - Converts modern string vectors to C-style arrays for syscalls like execve.
+ * Note: The returned pointers are valid only as long as env_vars is in scope and unchanged.
+ */
+std::vector<char*> get_c_envp(std::vector<std::string>& env_vars);

@@ -1,31 +1,55 @@
-# src/lib/Liblog/CMakeLists.txt
+cmake_minimum_required(VERSION 3.10)
 
-# 1. Identify the source files
+# torque-NG: Next Generation Resource Manager
+project(torque-NG-Liblog VERSION 1.0.0 LANGUAGES CXX)
+
+# Default to Debug build if no build type is specified
+if(NOT CMAKE_BUILD_TYPE)
+    set(CMAKE_BUILD_TYPE Debug CACHE STRING "Choose the type of build." FORCE)
+endif()
+
+# Set compiler-specific flags for Debugging
+if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+    message(STATUS "Configuring for Debug build...")
+    add_compile_options(-g -O0 -Wall -Wextra)
+else()
+    message(STATUS "Configuring for Release build...")
+    add_compile_options(-O3)
+endif()
+
+# Use C++17 for std::filesystem and std::scoped_lock
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
+
+# Add include directory (assuming headers are in the same folder or 'include')
+include_directories(${CMAKE_CURRENT_SOURCE_DIR})
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../include)
+
+# Define the source files for the library
 set(LIBLOG_SOURCES
-    chk_file_sec.cpp
-    log_event.cpp
-    pbs_log.cpp
-    pbs_messages.cpp
-    setup_env.cpp
     safe_log.cpp
+    chk_file_sec.cpp
+    pbs_log.cpp
+    log_event.cpp
+    setup_env.cpp
+    pbs_messages.cpp
 )
 
-# 2. Create the library target
-# We'll stick with torque_log or resmom_log (it's a library, not the bin)
-add_library(torque_log STATIC ${LIBLOG_SOURCES})
+# Create the static library liblog_ng.a
+add_library(log_ng STATIC ${LIBLOG_SOURCES})
 
-# 3. Set C++ Standard (Required for std::string and ostringstream logic)
-target_compile_features(torque_log PRIVATE cxx_std_17)
+# Link necessary system libraries
+# Networking functions need no extra libs on modern Linux, 
+# but filesystem might need 'stdc++fs' on older GCC versions.
+if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU" AND CMAKE_CXX_COMPILER_VERSION VERSION_LESS 9.0)
+    target_link_libraries(log_ng PUBLIC stdc++fs)
+endif()
 
-# 4. Apply 64-bit Large File Support
-# This is crucial so that 'off_t' in your refactored code is 64-bit
-target_compile_definitions(torque_log PRIVATE _FILE_OFFSET_BITS=64)
+# Threading support for std::mutex
+find_package(Threads REQUIRED)
+target_link_libraries(log_ng PUBLIC Threads::Threads)
 
-# 5. Set the include directories
-target_include_directories(torque_log PUBLIC 
-    ${CMAKE_CURRENT_SOURCE_DIR}
-    ${CMAKE_SOURCE_DIR}/src/include
-)
-
-# 6. Standard compiler flags
-target_compile_options(torque_log PRIVATE -Wall -Wextra)
+# --- Optional: Add a small test executable to verify compilation ---
+add_executable(log_test test/main.cpp)
+target_link_libraries(log_test log_ng)
