@@ -1,68 +1,86 @@
-TORQUE v2.5+ Software License v1.1 
+torque-NG Project License
+-------------------------
+This project is a modernized refactor of the TORQUE Resource Manager.
 
-Copyright (c) 2010-2026 Adaptive Computing Enterprises, Inc. All rights reserved.
-Modifications for Torque-NG Copyright (c) 2026 Kenneth Nielson.
+Copyright (c) 2026 Kenneth Nielson.
+Portions Copyright (c) 1999-2000 Veridian Information Solutions, Inc.
 
-Use this license to use or redistribute the TORQUE software v2.5+ and later versions[cite: 10, 15].
+This software is distributed under the OpenPBS v2.3 Software License.
 
------------------------------------------------------------------------------------
-For community support for Torque-NG, please refer to the project's GitHub Issues.
-Historical TORQUE community support was previously available at torqueusers@supercluster.org[cite: 11, 12].
-----------------------------------------------------------------------------------
+--------------------------
+         OpenPBS (Portable Batch System) v2.3 Software License
 
-This license covers use of the TORQUE v2.5 software (the "Software") at your site or 
-location, and, for certain users, redistribution of the Software to other sites and 
-locations[cite: 14]. Use and redistribution of TORQUE v2.5 in source and binary forms, 
-with or without modification, are permitted provided that all of the following 
-conditions are met[cite: 16]:
+ Copyright (c) 1999-2000 Veridian Information Solutions, Inc.
+ All rights reserved.
 
-1. Any Redistribution of source code must retain the above copyright notice, the 
-   acknowledgment contained in paragraph 4, and the disclaimer contained in 
-   paragraph 5[cite: 17]. 
+ ---------------------------------------------------------------------------
+ For a license to use or redistribute the OpenPBS software under conditions
+ other than those described below, or to purchase support for this software,
+ please contact Veridian Systems, PBS Products Department ("Licensor") at:
 
-2. Any Redistribution in binary form must reproduce the above copyright notice, the 
-   acknowledgment contained in paragraph 4, and the disclaimer contained in 
-   paragraph 5 in the documentation and/or other materials provided with the 
-   distribution[cite: 17].
+    www.OpenPBS.org  +1 650 967-4675                  sales@OpenPBS.org
+                        877 902-4PBS (US toll-free)
+ ---------------------------------------------------------------------------
 
-3. Redistributions in any form must be accompanied by information on how to obtain 
-   complete source code for TORQUE and any modifications and/or additions to 
-   TORQUE[cite: 18]. The source code must either be included in the distribution or 
-   be available for no more than the cost of distribution plus a nominal fee, and 
-   all modifications and additions to the Software must be freely redistributable 
-   by any party (including Licensor) without restriction[cite: 19].
+ This license covers use of the OpenPBS v2.3 software (the "Software") at
+ your site or location, and, for certain users, redistribution of the
+ Software to other sites and locations.  Use and redistribution of
+ OpenPBS v2.3 in source and binary forms, with or without modification,
+ are permitted provided that all of the following conditions are met.
+ After December 31, 2001, only conditions 3-6 must be met:
 
-4. All advertising materials mentioning features or use of the Software must display the 
-   following acknowledgment[cite: 20]: 
+ 1. Commercial and/or non-commercial use of the Software is permitted
+    provided a current software registration is on file at www.OpenPBS.org.
+    If use of this software contributes to a publication, product, or
+    service, proper attribution must be given; see www.OpenPBS.org/credit.html
 
-      "TORQUE is a modification of OpenPBS which was developed by NASA Ames 
-       Research Center, Lawrence Livermore National Laboratory, and Veridian 
-       Information Solutions, Inc[cite: 20]. Visit www.clusterresources.com/products/ for 
-       more information about TORQUE and to download TORQUE[cite: 20]. 
+ 2. Redistribution in any form is only permitted for non-commercial,
+    non-profit purposes.  There can be no charge for the Software or any
+    software incorporating the Software.  Further, there can be no
+    expectation of revenue generated as a consequence of redistributing
+    the Software.
 
-       Modifications for the Torque-NG branch were developed by Kenneth Nielson 
-       (2026) to provide C++17 modernization, Cgroup V2 support, and 
-       heterogeneous hardware awareness."
+ 3. Any Redistribution of source code must retain the above copyright notice
+    and the acknowledgment contained in paragraph 6, this list of conditions
+    and the disclaimer contained in paragraph 7.
 
-5. DISCLAIMER OF WARRANTY 
+ 4. Any Redistribution in binary form must reproduce the above copyright
+    notice and the acknowledgment contained in paragraph 6, this list of
+    conditions and the disclaimer contained in paragraph 7 in the
+    documentation and/or other materials provided with the distribution.
 
-     THE IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS FOR A 
-     PARTICULAR PURPOSE, AND NON-INFRINGEMENT ARE EXPRESSLY 
-     DISCLAIMED[cite: 22]. IN NO EVENT SHALL ADAPTIVE COMPUTING ENTERPRISES, INC. 
-     CORPORATION, ITS AFFILIATED COMPANIES, THE U.S. GOVERNMENT, OR 
-     KENNETH NIELSON BE LIABLE FOR ANY DIRECT OR INDIRECT, INCIDENTAL, 
-     SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT 
-     LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, 
-     DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON 
-     ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR 
-     TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF 
-     THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF 
-     SUCH DAMAGE[cite: 23, 24].
+ 5. Redistributions in any form must be accompanied by information on how to
+    obtain complete source code for the OpenPBS software and any
+    modifications and/or additions to the OpenPBS software.  The source code
+    must either be included in the distribution or be available for no more
+    than the cost of distribution plus a nominal fee, and all modifications
+    and additions to the Software must be freely redistributable by any party
+    (including Licensor) without restriction.
 
-This license is governed by the laws of Utah, without reference to its choice of law 
-rules[cite: 25].
+ 6. All advertising materials mentioning features or use of the Software must
+    display the following acknowledgment:
 
-Note 1: TORQUE is developed from an earlier version v2.3 of OpenPBS[cite: 26]. TORQUE has 
-been developed beyond OpenPBS v2.3[cite: 26]. The OpenPBS v2.3 license and OpenPBS 
-software are included in this distribution[cite: 27]. Users of TORQUE should comply 
-with the TORQUE license as well as the OpenPBS license[cite: 28].
+     "This product includes software developed by NASA Ames Research Center,
+     Lawrence Livermore National Laboratory, and Veridian Information
+     Solutions, Inc.
+     Visit www.OpenPBS.org for OpenPBS software support,
+     products, and information."
+
+ 7. DISCLAIMER OF WARRANTY
+
+ THIS SOFTWARE IS PROVIDED "AS IS" WITHOUT WARRANTY OF ANY KIND. ANY EXPRESS
+ OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
+ OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, AND NON-INFRINGEMENT
+ ARE EXPRESSLY DISCLAIMED.
+
+ IN NO EVENT SHALL VERIDIAN CORPORATION, ITS AFFILIATED COMPANIES, OR THE
+ U.S. GOVERNMENT OR ANY OF ITS AGENCIES BE LIABLE FOR ANY DIRECT OR INDIRECT,
+ INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+ LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA,
+ OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
+ LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+ NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
+ EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+ This license will be governed by the laws of the Commonwealth of Virginia,
+ without reference to its choice of law rules.
