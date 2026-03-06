@@ -1,0 +1,5 @@
+# Ignore all files in the build directory
+src/lib/Liblog/build/*
+
+# But do NOT ignore the .gitkeep file
+!src/lib/Liblog/build/.gitkeep
