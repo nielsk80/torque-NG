@@ -1,6 +1,8 @@
 // user_context.cpp
 #include "user_context.hpp"
 #include "pbs_log.h"
+#include "safe_log.hpp"
+#include "log.h"
 #include <vector>
 #include <grp.h>
 

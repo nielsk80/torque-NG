@@ -4,6 +4,8 @@
 
 #include "topology.hpp"
 #include "pbs_log.h"
+#include "safe_log.hpp"
+#include "log.h"
 #include <sstream>
 #include <string>
 

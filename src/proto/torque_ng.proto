@@ -6,9 +6,9 @@ import "google/protobuf/timestamp.proto";
 
 // Represents the IntRes, SizeRes, and StringRes structs
 message ResourceList {
-  map<string, int64> int_resources = 1;    // For cpu_count, nodes, etc.
-  map<string, uint64> size_resources = 2; // For mem, vmem (in bytes)
-  map<string, string> string_resources = 3; // For walltime, software licenses
+  map<string, int64> int_resources = 1;
+  map<string, uint64> size_resources = 2;
+  map<string, string> string_resources = 3;
 }
 
 message Job {
@@ -35,7 +35,7 @@ message Job {
   JobState state = 7;
   int32 priority = 8;
   
-  // Flags (Replacing ints with bools for clarity)
+  // Flags
   bool is_rerunnable = 9;
   bool is_interactive = 10;
 
@@ -46,11 +46,85 @@ message Job {
   string stage_in_files = 12;
   string stage_out_files = 13;
 
-  // Resource Tracking (The complex structs from your C code)
+  // Resource Tracking
   ResourceList resources_requested = 14;
   ResourceList resources_used = 15;
 
-  // Location Metadata (Replacing void pointers)
+  // Location Metadata
   string server_id = 16;
   string queue_name = 17;
+}
+
+// Data model for compute nodes
+message Node {
+  string name = 1;
+  
+  enum State {
+    FREE = 0;
+    OFFLINE = 1;
+    DOWN = 2;
+    RESERVED = 3;
+    JOB_EXCLUSIVE = 4;
+    BUSY = 5;
+    UNKNOWN = 6;
+  }
+  
+  State state = 2;
+  int32 pcpus = 3;
+  ResourceList resources = 4;
+  string note = 5;
+}
+
+// --- Service Messages ---
+
+// Job Deletion (qdel)
+message JobDeleteRequest {
+  string job_id = 1;
+  string reason = 2;
+  bool force = 3;
+}
+
+message JobDeleteResponse {
+  enum DeleteStatus {
+    SUCCESS = 0;
+    JOB_NOT_FOUND = 1;
+    PERMISSION_DENIED = 2;
+    SERVER_ERROR = 3;
+  }
+  DeleteStatus status = 1;
+  string message = 2;
+}
+
+// Job Status (qstat)
+message GetJobStatusRequest {
+  string job_id = 1;
+  string message = 2;
+}
+
+message GetJobStatusResponse {
+  enum Status {
+    FOUND = 0;
+    NOT_FOUND = 1;
+    PERMISSION_DENIED = 2;
+  }
+  Status status = 1;
+  repeated Job jobs = 2;
+  string message = 3;
+}
+
+// Node Status (pbsnodes)
+message GetNodeStatusRequest {
+  string node_name = 1;
+  string message = 2;
+}
+
+message GetNodeStatusResponse {
+  enum RequestStatus {
+    SUCCESS = 0;
+    NODE_NOT_FOUND = 1;
+    ERROR = 2;
+  }
+  RequestStatus status = 1;
+  repeated Node nodes = 2;
+  string message = 3;
 }

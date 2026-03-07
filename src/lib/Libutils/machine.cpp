@@ -5,6 +5,8 @@
 #include "allocation.hpp"
 #include "user_context.hpp"
 #include "pbs_log.h"
+#include "safe_log.hpp"
+#include "log.h"
 #include "pbs_error.h"
 
 #include <stdexcept>

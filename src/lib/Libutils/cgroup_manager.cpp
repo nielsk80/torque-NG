@@ -1,6 +1,8 @@
 #include "cgroup_manager.hpp"
 #include <fstream>
 #include <pbs_log.h>
+#include "safe_log.hpp"
+#include "log.h"
 #include <pbs_error.h>
 #include <stdexcept>
 #include <memory>
@@ -40,12 +42,13 @@ public:
         try {
             std::ofstream outfile(path);
             if (!outfile.is_open()) {
-                log_err(PBSE_INTERNAL, routine, "Failed to open cgroup.procs for job " + std::to_string(job_id));
+                // Append .c_str() to the end of your string concatenation
+                log_err(PBSE_INTERNAL, routine.c_str(), ("Failed to open cgroup.procs for job " + std::to_string(job_id)).c_str());
                 return;
             }
             outfile << pid;
         } catch (const std::exception& e) {
-            log_err(PBSE_INTERNAL, routine, e.what());
+            log_err(PBSE_INTERNAL, routine.c_str(), e.what());
         }
     }
 
@@ -59,7 +62,7 @@ public:
                 fs::remove(job_path);
             }
         } catch (const std::exception& e) {
-            log_err(PBSE_INTERNAL, routine, e.what());
+            log_err(PBSE_INTERNAL, routine.c_str(), e.what());
         }
     }
 };

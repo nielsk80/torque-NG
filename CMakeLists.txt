@@ -36,5 +36,4 @@ include_directories(${CMAKE_SOURCE_DIR}/src/include)
 add_subdirectory(src/proto)
 add_subdirectory(src/lib/Liblog)
 add_subdirectory(src/lib/Libutils)
-add_subdirectory(src/resmom)
 

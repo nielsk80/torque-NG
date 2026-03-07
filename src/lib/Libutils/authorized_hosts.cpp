@@ -1,5 +1,7 @@
 #include "authorized_hosts.hpp"
 #include "pbs_log.h"
+#include "safe_log.hpp"
+#include "log.h"
 #include <sstream>
 #include <algorithm>
 #include <vector>
