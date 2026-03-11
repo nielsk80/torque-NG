@@ -1,0 +1,54 @@
+/*
+ * torque-NG: Next Generation Resource Manager
+ *
+ * Copyright (c) 2026 Kenneth Nielson.
+ * Portions Copyright (c) 1999-2000 Veridian Information Solutions, Inc.
+ * Licensed under the OpenPBS v2.3 Software License.
+ */
+ 
+ syntax = "proto3";
+
+package torque_ng;
+
+message JobStatusUpdate {
+  // Core Identity (Derived from pbs_job.h ji_qs)
+  string job_id = 1;
+  string user_owner = 2;
+  string job_name = 3;
+  int32 job_state = 4;
+  int32 sub_state = 5;      // Essential for tracking internal TORQUE transitions
+
+  // Resource Tracking (MOM high-water marks)
+  message Resources {
+    uint64 mem_bytes = 1;
+    uint64 vmem_bytes = 2;
+    double walltime_used = 3;
+    uint32 cpu_count = 4;
+    uint64 energy_used = 5;
+  }
+
+  // Resource Limits (From ji_wattr/ji_rattr)
+  message ResourceLimits {
+    uint64 req_mem = 1;
+    uint64 req_vmem = 2;
+    uint32 req_nodes = 3;
+    uint32 req_procs = 4;
+    double req_walltime = 5;
+  }
+
+  Resources resources_used = 6;
+  ResourceLimits limits = 7;
+
+  // Execution Details (From ji_hosts and ji_flags)
+  string exec_host = 8;
+  int32 exit_status = 9;
+  bool is_interactive = 10;
+  
+  // Timestamps (From ji_qs time fields)
+  uint64 queue_time = 11;
+  uint64 modify_time = 12;
+
+  // Flexible Metadata (Replacing legacy pbs_attribute arrays)
+  map<string, string> attributes = 13;
+  map<string, string> environment_vars = 14;
+}
