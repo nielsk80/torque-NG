@@ -1,67 +1,53 @@
 # =============================================================================
-# torque-NG Modern Build Rules
+# torque-NG: Modern C++ & Protobuf Rules
 # =============================================================================
-# Ignore the new centralized build tree
-build/
 
-# Ignore Protobuf generated source/headers if they appear in the source tree
+# Build Artifacts
+server_test
+client_test
+proto_test
+build/
+*.o
+*.a
+*.so
+
+# Protobuf Generated Code
+# We track the .proto files, but never the generated C++ headers/source
 *.pb.cc
 *.pb.h
 
-# Modern IDE and Editor temporary files
+# =============================================================================
+# Development Tools & Environment
+# =============================================================================
+
+# IDEs and Editors
 .vscode/
 .idea/
 *.swp
+*.swo
 .DS_Store
 
+# Tags and Indexing
+tags
+cscope.*
+GPATH
+GRTAGS
+GTAGS
+
 # =============================================================================
-# Legacy TORQUE Rules (Preserved)
+# Legacy TORQUE Compatibility
 # =============================================================================
-# Ignore objects and archives.
-*.[oa]
+
+# Autotools artifacts
 Makefile
 Makefile.in
-test_uut
-*.l[oa]
-*.gcno
-*.gcov
-*.gcda
-*_suite.log
-.deps
-.dirstamp
-.libs
-*~
-*.m4
+.deps/
+.libs/
 *.log
 *.trs
-*.tmp
-.settings
-autom4te.cache/
-buildutils/ar-lib
-buildutils/compile
-buildutils/config.guess
-buildutils/config.sub
-buildutils/depcomp
-buildutils/install-sh
-buildutils/ltmain.sh
-buildutils/missing
-buildutils/modulefiles
-buildutils/modulefiles.vers
-buildutils/pbs_mkdirs
-buildutils/self-extract-head-sh
-buildutils/ylwrap
-buildutils/test-driver
 config.log
 config.status
 configure
-
-# ... (All other existing legacy rules preserved below)
-# Indexing files
-cscope.out
-src/cscope.out
-tags
-src/tags
-
-# Generated site headers
+autom4te.cache/
 src/include/site_*.h
 src/include/pbs_config.h
