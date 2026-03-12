@@ -1,4 +1,13 @@
+/*
+ * torque-NG: Next Generation Resource Manager
+ *
+ * Copyright (c) 2026 Kenneth Nielson.
+ * Portions Copyright (c) 1999-2000 Veridian Information Solutions, Inc.
+ * Licensed under the OpenPBS v2.3 Software License.
+ */
+
 #include "authorized_hosts.hpp"
+#include "TorqueErrors.hpp"
 #include "pbs_log.h"
 #include "safe_log.hpp"
 #include "log.h"
@@ -6,6 +15,7 @@
 #include <algorithm>
 #include <vector>
 
+using namespace torque_ng;
 authorized_hosts::authorized_hosts() : auth_map() {}
 
 /**
@@ -41,13 +51,13 @@ void authorized_hosts::add_authorized_address(
     this->auth_map[addr][port] = host;
 
     std::string msg = "Added authorized host: " + host + " (" + format_ip(addr) + ":" + std::to_string(port) + ")";
-    log_event(PBSEVENT_DEBUG, PBS_EVENTCLASS_SERVER, "Auth", msg.c_str());
+    log_event(Torque::EventType::Debug, Torque::EventClass::Server, "Auth", msg.c_str());
 }
 
 void authorized_hosts::clear() {
     std::lock_guard<std::mutex> lock(this->auth_mutex);
     this->auth_map.clear();
-    log_event(PBSEVENT_DEBUG, PBS_EVENTCLASS_SERVER, "Auth", "Authorized hosts map cleared.");
+    log_event(Torque::EventType::Debug, Torque::EventClass::Server, "Auth", "Authorized hosts map cleared.");
 }
 
 bool authorized_hosts::is_authorized(unsigned long addr) {

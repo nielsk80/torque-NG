@@ -1,10 +1,15 @@
 // authorized_hosts.hpp
 #pragma once
 
+#include "TorqueErrors.hpp"
 #include <map>
 #include <string>
 #include <mutex>
-#include "pbs_nodes.h" // Needed for pbsnode return types
+#include <memory>
+
+namespace torque_ng {
+    class pbsnode; // Placeholder for actual node class definition
+}
 
 class authorized_hosts {
 private:
@@ -26,8 +31,8 @@ public:
 
     bool     is_authorized(unsigned long addr);
     bool     is_authorized(unsigned long addr, unsigned short port);
-    pbsnode *get_authorized_node(unsigned long addr);
-    pbsnode *get_authorized_node(unsigned long addr, unsigned short port);
+    torque_ng::pbsnode *get_authorized_node(unsigned long addr);
+    torque_ng::pbsnode *get_authorized_node(unsigned long addr, unsigned short port);
     void     list_authorized_hosts(std::string &output);
     bool     remove_address(unsigned long addr, unsigned short port);
 };

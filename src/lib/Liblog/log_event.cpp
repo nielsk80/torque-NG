@@ -6,13 +6,13 @@
  * Licensed under the OpenPBS v2.3 Software License.
  */
 
-#include "log_event.h"
-#include "pbs_log.h"
+#include "log.h"
+#include "safe_log.hpp"
 
-/**
- * log_event - Formats legacy calls for the new logging engine.
- */
-void log_event(int eventtype, int objclass, std::string_view objname, std::string_view text) {
-    // We pass directly to our modernized bridge in pbs_log.cpp
-    log_record(eventtype, objclass, objname, text);
+namespace torque_ng {
+
+void log_event(Torque::EventType type, Torque::EventClass cls, std::string_view name, std::string_view text) {
+    SafeLog::getInstance().record(type, cls, name, text);
 }
+
+} // namespace torque_ng

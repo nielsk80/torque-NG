@@ -1,3 +1,11 @@
+/*
+ * torque-NG: Next Generation Resource Manager
+ *
+ * Copyright (c) 2026 Kenneth Nielson.
+ * Portions Copyright (c) 1999-2000 Veridian Information Solutions, Inc.
+ * Licensed under the OpenPBS v2.3 Software License.
+ */
+
 // This is going to replace numa_socket.cpp, numa_chip.cpp, numa_core.cpp, and numa_thread.cpp.  
 // It will be used to determine the topology of the system and how many sockets, 
 // chips, cores, and threads are present.
@@ -5,9 +13,12 @@
 #include "topology.hpp"
 #include "pbs_log.h"
 #include "safe_log.hpp"
+#include "TorqueErrors.hpp"
 #include "log.h"
 #include <sstream>
 #include <string>
+
+using namespace torque_ng;
 
 // Helper to count specific types of children (e.g., how many GPUs or Cores)
 int HardwareNode::count_descendants(NodeType target_type) const {
@@ -52,16 +63,16 @@ void HardwareNode::display(int depth) const {
     std::string msg = indent + "[Type " + std::to_string(static_cast<int>(type)) + "] " +
                       "ID: " + std::to_string(id) + 
                       " | Threads: " + std::to_string(available_threads) + "/" + std::to_string(total_threads);
-    log_event(PBSEVENT_SYSTEM, PBS_EVENTCLASS_SERVER, "Machine", msg.c_str());
+    log_event(Torque::EventType::System, Torque::EventClass::Server, "Machine", msg);
 
     if (efficiency_class != -1) {
         std::string msg = " | Efficiency: " + std::to_string(efficiency_class);
-        log_event(PBSEVENT_SYSTEM, PBS_EVENTCLASS_SERVER, "Machine", msg.c_str());
+        log_event(Torque::EventType::System, Torque::EventClass::Server, "Machine", msg);
     }
 
     if (!cpuset.empty()) {
         std::string msg = " | CPUSet: " + cpuset;
-        log_event(PBSEVENT_SYSTEM, PBS_EVENTCLASS_SERVER, "Machine", msg.c_str());
+        log_event(Torque::EventType::System, Torque::EventClass::Server, "Machine", msg);
     }
 
     for (const auto& child : children) {

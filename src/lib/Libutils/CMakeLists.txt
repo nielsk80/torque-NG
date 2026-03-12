@@ -1,14 +1,13 @@
+# torque-NG: Libutils Build Configuration
 cmake_minimum_required(VERSION 3.12)
-project(Libutils CXX)
+project(torque-NG-Libutils LANGUAGES CXX)
 
-set(CMAKE_CXX_STANDARD 17)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
-
-# 1. Dependencies
+# 1. External Dependencies
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(HWLOC REQUIRED hwloc)
+find_package(Threads REQUIRED)
 
-# 2. Source Files (Strictly the modernized set)
+# 2. Source Files
 set(LIBUTILS_SOURCES
     machine.cpp
     topology.cpp
@@ -22,23 +21,26 @@ set(LIBUTILS_SOURCES
     jsoncpp.cpp
 )
 
-add_library(utils STATIC ${LIBUTILS_SOURCES})
+# 3. Create Library
+add_library(utils_ng STATIC ${LIBUTILS_SOURCES})
 
-# 3. Include Paths
-target_include_directories(utils PRIVATE 
-    ${CMAKE_CURRENT_SOURCE_DIR}
-    ${HWLOC_INCLUDE_DIRS}
-    ${CMAKE_CURRENT_SOURCE_DIR}/../Liblog
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../include
+# 4. Modern Header Management
+# We use PUBLIC so that Libproto/MOM can see these headers automatically
+target_include_directories(utils_ng 
+    PUBLIC  ${CMAKE_CURRENT_SOURCE_DIR}
+    PUBLIC  ${CMAKE_CURRENT_SOURCE_DIR}/../../include
+    PRIVATE ${HWLOC_INCLUDE_DIRS}
 )
 
-# 4. Linking
-target_link_libraries(utils PRIVATE 
-    ${HWLOC_LIBRARIES}
-    pthread
+# 5. Dependency Linking
+# Linking log_ng as PUBLIC means anyone using utils_ng also gets the logger
+target_link_libraries(utils_ng 
+    PUBLIC  log_ng 
+    PUBLIC  ${HWLOC_LIBRARIES}
+    PUBLIC  Threads::Threads
 )
 
 # GCC 8 filesystem support
 if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" AND CMAKE_CXX_COMPILER_VERSION VERSION_LESS 9.0)
-    target_link_libraries(utils PRIVATE stdc++fs)
+    target_link_libraries(utils_ng PUBLIC stdc++fs)
 endif()

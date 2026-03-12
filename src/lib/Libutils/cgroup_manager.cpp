@@ -1,12 +1,13 @@
 #include "cgroup_manager.hpp"
+#include "TorqueErrors.hpp"
 #include <fstream>
 #include <pbs_log.h>
 #include "safe_log.hpp"
 #include "log.h"
-#include <pbs_error.h>
 #include <stdexcept>
 #include <memory>
 
+using namespace torque_ng;
 
 class LinuxV2CgroupManager : public ICgroupManager {
 public:
@@ -28,10 +29,10 @@ public:
 
             // Log successful creation as a system event
             std::string msg = "Created isolation container for job " + std::to_string(job_id);
-            log_event(PBSEVENT_SYSTEM, PBS_EVENTCLASS_SERVER, "TORQUE", msg.c_str());
+            log_event(Torque::EventType::System, Torque::EventClass::Server, "TORQUE", msg);
         }
         catch (const std::exception& e) {
-            log_err(PBSE_INTERNAL, __func__, e.what());
+            log_err(static_cast<int>(Torque::ErrorCode::Internal), __func__, e.what());
         }  
     }
 
@@ -43,12 +44,12 @@ public:
             std::ofstream outfile(path);
             if (!outfile.is_open()) {
                 // Append .c_str() to the end of your string concatenation
-                log_err(PBSE_INTERNAL, routine.c_str(), ("Failed to open cgroup.procs for job " + std::to_string(job_id)).c_str());
+                log_err(static_cast<int>(Torque::ErrorCode::Internal), routine.c_str(), ("Failed to open cgroup.procs for job " + std::to_string(job_id)).c_str());
                 return;
             }
             outfile << pid;
         } catch (const std::exception& e) {
-            log_err(PBSE_INTERNAL, routine.c_str(), e.what());
+            log_err(static_cast<int>(Torque::ErrorCode::Internal), routine.c_str(), e.what());
         }
     }
 
@@ -62,7 +63,7 @@ public:
                 fs::remove(job_path);
             }
         } catch (const std::exception& e) {
-            log_err(PBSE_INTERNAL, routine.c_str(), e.what());
+            log_err(static_cast<int>(Torque::ErrorCode::Internal), routine.c_str(), e.what());
         }
     }
 };
@@ -71,17 +72,17 @@ std::unique_ptr<ICgroupManager> CgroupManagerFactory::create(const std::string &
 {
    if (type == "v1")
    {
-      log_event(PBSEVENT_DEBUG, PBS_EVENTCLASS_SERVER, "CgroupMgr", "Creating V1 Manager");
+      log_event(Torque::EventType::Debug, Torque::EventClass::Server, "CgroupMgr", "Creating V1 Manager");
       return nullptr; // Placeholder for actual V1 implementation
                       // return std::make_unique<LinuxV1CgroupManager>();
    }
    else if (type == "none")
    {
-      log_event(PBSEVENT_DEBUG, PBS_EVENTCLASS_SERVER, "CgroupMgr", "Cgroups disabled");
+      log_event(Torque::EventType::Debug, Torque::EventClass::Server, "CgroupMgr", "Cgroups disabled");
       return std::make_unique<NullCgroupManager>();
    }
 
    // Default to V2
-   log_event(PBSEVENT_DEBUG, PBS_EVENTCLASS_SERVER, "CgroupMgr", "Creating V2 Manager (Default)");
+   log_event(Torque::EventType::Debug, Torque::EventClass::Server, "CgroupMgr", "Creating V2 Manager (Default)");
    return std::make_unique<LinuxV2CgroupManager>();
 }

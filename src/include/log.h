@@ -1,61 +1,42 @@
 /*
- * Copyright (C) 2026 Kenneth Nielson
- * Part of the torque-NG project.
+ * torque-NG: Next Generation Resource Manager
  *
- * This file is subject to the terms and conditions defined in
- * file 'LICENSE', which is part of this source code package.
+ * Copyright (c) 2026 Kenneth Nielson.
+ * All rights reserved.
+ *
+ * This file replaces the legacy TORQUE log.h with a modern C++17 interface.
  */
 
 #pragma once
 
-#include "pbs_config.h"
-
-#ifdef __cplusplus
-#include <string>
+#include "LogTypes.hpp"
 #include <string_view>
-#include "safe_log.hpp" // Your new C++ logging engine
 
 namespace torque_ng {
 
 /**
- * @brief Modern Type-Safe Log Levels for torque-NG
+ * @brief Primary logging interface for torque-NG components.
+ * * Uses std::string_view to avoid unnecessary allocations and utilizes
+ * the underlying SafeLog singleton.
+ *
+ * @param type The EventType (Error, System, Job, etc.) defined in LogTypes.hpp
+ * @param cls  The EventClass (Server, MOM, etc.) defined in LogTypes.hpp
+ * @param name The name of the object or facility being logged
+ * @param text The log message content
  */
-enum class LogLevel {
-    ERROR = 0,
-    WARNING = 1,
-    INFO = 2,
-    DEBUG = 3,
-    TRACE = 4
-};
+void log_event(
+    Torque::EventType type, 
+    Torque::EventClass cls, 
+    std::string_view name, 
+    std::string_view text);
 
-// Modern C++ API: No more .c_str() required for these!
-void log_event(LogLevel level, std::string_view facility, std::string_view message);
-void log_err(int err_code, std::string_view routine, std::string_view text);
+/**
+ * @brief Error-specific logging helper.
+ * * Maps PBS error codes to human-readable text using the Liblog database.
+ */
+void log_err(
+    int err_code, 
+    std::string_view routine, 
+    std::string_view text);
 
 } // namespace torque_ng
-
-extern "C" {
-#endif
-
-// --- Legacy Compatibility Layer ---
-// Standard TORQUE event types found in legacy pbs_log.h
-#define PBSEVENT_ERROR      0x0001
-#define PBSEVENT_SYSTEM     0x0002
-#define PBSEVENT_ADMIN      0x0004
-#define PBSEVENT_JOB        0x0008
-#define PBSEVENT_JOB_USAGE  0x0010
-#define PBSEVENT_SECURITY   0x0020
-#define PBSEVENT_SCHED      0x0040
-#define PBSEVENT_DEBUG      0x0080
-#define PBSEVENT_DEBUG2     0x0100
-
-#define PBS_EVENTCLASS_SERVER 1
-#define PBS_EVENTCLASS_MOM    2
-#define PBS_EVENTCLASS_PROG   3
-
-// Legacy C-style signatures
-void log_event(int eventtype, int eventclass, const char* entity, const char* message);
-void log_err(int err_code, const char* routine, const char* text);
-
-} // extern "C"
-

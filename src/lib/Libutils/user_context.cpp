@@ -3,8 +3,11 @@
 #include "pbs_log.h"
 #include "safe_log.hpp"
 #include "log.h"
+#include "TorqueErrors.hpp"
 #include <vector>
 #include <grp.h>
+
+using namespace torque_ng;
 
 UserContext::UserContext(const std::string& username) : name(username) {
     lookup_user();
@@ -25,7 +28,7 @@ void UserContext::lookup_user() {
         shell = pwd.pw_shell;
         user_exists = true;
     } else {
-        log_event(PBSEVENT_ERROR, PBS_EVENTCLASS_SERVER, "Security", ("User lookup failed: " + name).c_str());
+        log_event(Torque::EventType::Error, Torque::EventClass::Server, "Security", "User lookup failed: " + name);
     }
 }
 
@@ -35,25 +38,25 @@ bool UserContext::apply_to_current_process() const {
     // The following three steps must be done in order to properly drop privileges:
     // 1. Set secondary groups for the user
     if (initgroups(name.c_str(), gid) != 0) {
-        log_event(PBSEVENT_ERROR, PBS_EVENTCLASS_SERVER, "Security", "Failed to initgroups");
+        log_event(Torque::EventType::Error, Torque::EventClass::Server, "Security", "Failed to initgroups");
         return false;
     }
 
     // 2. Set primary Group ID
     if (setgid(gid) != 0) {
-        log_event(PBSEVENT_ERROR, PBS_EVENTCLASS_SERVER, "Security", "Failed to setgid");
+        log_event(Torque::EventType::Error, Torque::EventClass::Server, "Security", "Failed to setgid");
         return false;
     }
 
     // 3. Set User ID
     if (setuid(uid) != 0) {
-        log_event(PBSEVENT_ERROR, PBS_EVENTCLASS_SERVER, "Security", "Failed to setuid");
+        log_event(Torque::EventType::Error, Torque::EventClass::Server, "Security", "Failed to setuid");
         return false;
     }
 
     // Final sanity check: verify we are no longer root
    if (getuid() != uid || geteuid() != uid) {
-      log_event(PBSEVENT_ERROR, PBS_EVENTCLASS_SERVER, "Security", "ID verification failed after setuid");
+      log_event(Torque::EventType::Error, Torque::EventClass::Server, "Security", "ID verification failed after setuid");
       return false;
    }
 

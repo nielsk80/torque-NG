@@ -8,6 +8,7 @@
 #include "safe_log.hpp"
 #include "log.h"
 #include "pbs_error.h"
+#include "TorqueErrors.hpp"
 
 #include <stdexcept>
 #include <mutex>
@@ -17,6 +18,7 @@
 #include <algorithm>
 #include <unistd.h>
 
+using namespace torque_ng;
 /**
  * CgroupConfig: Helper class to handle PBS environment discovery
  * and configuration parsing.
@@ -78,7 +80,7 @@ Machine::Machine() {
     cgroup_mgr = CgroupManagerFactory::create(type);
 
     std::string msg = "Cgroup Manager initialized with type: " + type;
-    log_event(PBSEVENT_DEBUG, PBS_EVENTCLASS_SERVER, "Machine", msg.c_str());
+    log_event(Torque::EventType::Debug, Torque::EventClass::Server, "Machine", msg.c_str());
 }
 
 HardwareNode& Machine::get_topology() {
@@ -106,7 +108,7 @@ bool Machine::schedule_job(const Job& job) {
     auto selected_nodes = current_strategy->find_placement(&root, job);
         
     if (selected_nodes.size() < (size_t)job.required_cores) {
-        log_event(PBSEVENT_DEBUG, PBS_EVENTCLASS_SERVER, "Machine", "Insufficient resources for placement.");
+        log_event(Torque::EventType::Debug, Torque::EventClass::Server, "Machine", "Insufficient resources for placement.");
         return false;
     }
 
@@ -121,7 +123,7 @@ bool Machine::schedule_job(const Job& job) {
     pid_t pid = fork();
 
     if (pid < 0) {
-        log_err(PBSE_INTERNAL, __func__, ("Failed to fork for job " + std::to_string(job.id)).c_str());
+        log_err(static_cast<int>(Torque::ErrorCode::SystemError), __func__, "Failed to fork for job" + std::to_string(job.id));
         return false;
     }
 
@@ -131,13 +133,13 @@ bool Machine::schedule_job(const Job& job) {
         // Note: You'll need to ensure the Job struct has an 'owner' field
         UserContext user(job.user); // Use the correct member name
         if (!user.exists()) {
-            log_err(PBSE_INTERNAL, __func__, "Child failed: User does not exist");
+            log_err(static_cast<int>(Torque::ErrorCode::Internal), __func__, "User " + job.user + " not found.");
             _exit(1); 
         }
 
         // 2. Drop privileges (initgroups -> setgid -> setuid)
         if (!user.apply_to_current_process()) {
-            log_err(PBSE_INTERNAL, __func__, "Child failed: Unable to drop privileges");
+            log_err(static_cast<int>(Torque::ErrorCode::Internal), __func__, "Child failed: Unable to drop privileges" + job.user);
             _exit(1); 
         }   
 
@@ -163,7 +165,7 @@ bool Machine::schedule_job(const Job& job) {
         root.available_threads -= job.required_cores;
 
         std::string msg = "Job " + std::to_string(job.id) + " successfully launched and isolated.";
-        log_event(PBSEVENT_SYSTEM, PBS_EVENTCLASS_SERVER, "Machine", msg.c_str());
+        log_event(Torque::EventType::System, Torque::EventClass::Server, "Machine", msg.c_str());
 
         return true;
     }
