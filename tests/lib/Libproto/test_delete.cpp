@@ -1,35 +1,36 @@
-// torque-NG: Libproto Status Protocol Unit Test
-// Copyright (c) 2026 Kenneth Nielson.
-// SPDX-License-Identifier: OpenPBS-2.3
+/*
+ * torque-NG: Next Generation Resource Manager
+ *
+ * Copyright (c) 2026 Kenneth Nielson.
+ * Portions Copyright (c) 1999-2000 Veridian Information Solutions, Inc.
+ * Licensed under the OpenPBS v2.3 Software License.
+ */
 
-#include <iostream>
-#include <cassert>
+#include <gtest/gtest.h>
 #include "Dispatcher.hpp"
 #include "torque_messages.pb.h"
 
-int main() {
+TEST(LibprotoTest, DeleteJobHandling) {
     MessageDispatcher dispatcher;
+    bool handler_called = false;
 
-    // 1. Define the "Server-Side" logic for Job Delete
-    // In a real pbs_server, this would look up the job in the JobManager 
-    // and signal the MOM or update the database.
-    dispatcher.registerDeleteHandler([](const torque_ng::JobDeleteRequest& req) {
-        std::cout << "[Server] Processing Delete for Job: " << req.job_id() << std::endl;
-        if (!req.reason().empty()) {
-            std::cout << "[Server] Reason provided: " << req.reason() << std::endl;
-        }
-        if (req.force()) {
-            std::cout << "[Server] Force flag detected (SIGKILL path)" << std::endl;
-        }
+    // 1. Define the Server-Side logic for Job Delete
+    dispatcher.registerDeleteHandler([&](const torque_ng::JobDeleteRequest& req) {
+        handler_called = true;
+
+        // Verify the incoming Protobuf data
+        EXPECT_EQ(req.job_id(), "123.localhost");
+        EXPECT_EQ(req.reason(), "User requested cancellation");
+        EXPECT_TRUE(req.force());
 
         // Return a successful response
         torque_ng::TorqueReply reply;
-        reply.set_error_code(0); // Success
+        reply.set_error_code(0);
         reply.set_error_message("Job " + req.job_id() + " marked for deletion.");
         return reply;
     });
 
-    // 2. Simulate an incoming "Network" Request (qdel 123.localhost)
+    // 2. Simulate an incoming Request (e.g., from qdel)
     torque_ng::TorqueRequest incoming_request;
     auto* delete_payload = incoming_request.mutable_delete_();
     delete_payload->set_job_id("123.localhost");
@@ -37,14 +38,28 @@ int main() {
     delete_payload->set_force(true);
 
     // 3. Dispatch the message
-    std::cout << "Dispatching JobDeleteRequest..." << std::endl;
     torque_ng::TorqueReply server_reply = dispatcher.route(incoming_request);
 
-    // 4. Verify the result
-    std::cout << "Server Reply: [" << server_reply.error_code() << "] " 
-              << server_reply.error_message() << std::endl;
+    // 4. Verify results
+    EXPECT_TRUE(handler_called);
+    EXPECT_EQ(server_reply.error_code(), 0);
+    EXPECT_EQ(server_reply.error_message(), "Job 123.localhost marked for deletion.");
+}
 
-    assert(server_reply.error_code() == 0);
+// Additional test to ensure 'force' defaults to false if not set
+TEST(LibprotoTest, DeleteJobDefaults) {
+    MessageDispatcher dispatcher;
     
-    return 0;
+    dispatcher.registerDeleteHandler([](const torque_ng::JobDeleteRequest& req) {
+        EXPECT_FALSE(req.force()); // Verify Protobuf default behavior
+        
+        torque_ng::TorqueReply reply;
+        reply.set_error_code(0);
+        return reply;
+    });
+
+    torque_ng::TorqueRequest request;
+    request.mutable_delete_()->set_job_id("456.localhost");
+    
+    dispatcher.route(request);
 }
