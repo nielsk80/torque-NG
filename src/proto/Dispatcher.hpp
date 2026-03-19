@@ -1,3 +1,11 @@
+/*
+ * torque-NG: Next Generation Resource Manager
+ *
+ * Copyright (c) 2026 Kenneth Nielson.
+ * Portions Copyright (c) 1999-2000 Veridian Information Solutions, Inc.
+ * Licensed under the OpenPBS v2.3 Software License.
+ */
+
 #pragma once
 
 #include <iostream>
@@ -19,11 +27,13 @@ public:
     using DeleteHandler = std::function<torque_ng::TorqueReply(const torque_ng::JobDeleteRequest&)>;
     using SubmitHandler = std::function<torque_ng::TorqueReply(const torque_ng::JobSubmitRequest&)>;
     using ObituaryHandler = std::function<torque_ng::TorqueReply(const torque_ng::JobObituary&)>;
+    using StatusHandler = std::function<torque_ng::TorqueReply(const torque_ng::JobStatusRequest&)>;
 
     // Registration Methods
     void registerDeleteHandler(DeleteHandler h) { handlers_delete = std::move(h); }
     void registerSubmitHandler(SubmitHandler h) { handlers_submit = std::move(h); }
     void registerObituaryHandler(ObituaryHandler h) { handlers_obituary = std::move(h); }
+    void registerStatusHandler(StatusHandler h) { handlers_status = std::move(h); }
 
     /**
      * @brief The main routing engine.
@@ -46,6 +56,10 @@ public:
 
             case torque_ng::TorqueRequest::PAYLOAD_NOT_SET:
                 return createErrorReply("Empty request payload received");
+            
+            case torque_ng::TorqueRequest::kStatus:
+                if (handlers_status) return handlers_status(request.status());
+                return createErrorReply("Status handler not registered");
 
             default:
                 return createErrorReply("Command recognized in .proto but not yet implemented in Dispatcher");
@@ -57,6 +71,7 @@ private:
     DeleteHandler handlers_delete;
     SubmitHandler handlers_submit;
     ObituaryHandler handlers_obituary;
+    StatusHandler handlers_status;
 
     // Helper to generate a standardized error reply
     torque_ng::TorqueReply createErrorReply(const std::string& msg) {

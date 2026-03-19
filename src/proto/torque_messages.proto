@@ -46,6 +46,22 @@ message JobObituary {
     ResourcesUsed resources = 4;
 }
 
+// Data for a single job in the queue
+message JobStatusInfo {
+    string job_id = 1;
+    string job_name = 2;
+    string user_name = 3;
+    string queue_name = 4;
+    string state = 5;      // e.g., "Queued", "Running", "Exiting"
+    uint64 walltime_used = 6;
+    uint64 mem_used_bytes = 7;
+}
+
+// The container for multiple job statuses
+message JobStatusResponse {
+    repeated JobStatusInfo jobs = 1; 
+}
+
 // --- The Top-Level "Envelope" ---
 
 message TorqueRequest {
@@ -64,6 +80,6 @@ message TorqueReply {
     
     oneof data {
         string job_id_created = 3; // For Submit
-        string status_info = 4;    // For Status (later a structured message)
+        JobStatusResponse status_data = 4;    // For Status (later a structured message)
     }
 }
