@@ -17,6 +17,7 @@ add_library(torque_proto_logic STATIC
 target_include_directories(torque_proto_logic PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}
     ${PROJECT_SOURCE_DIR}/src/include
+    ${CMAKE_CURRENT_SOURCE_DIR}
 )
 
 # 3. Define the Test Binaries

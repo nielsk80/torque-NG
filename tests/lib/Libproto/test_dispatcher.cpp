@@ -1,3 +1,7 @@
+// torque-NG: Libproto Status Protocol Unit Test
+// Copyright (c) 2026 Kenneth Nielson.
+// SPDX-License-Identifier: OpenPBS-2.3
+
 #include <iostream>
 #include <cassert>
 #include "Dispatcher.hpp"

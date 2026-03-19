@@ -15,6 +15,9 @@ enable_testing()
 
 # 1. Find Protobuf globally
 find_package(Protobuf REQUIRED)
+find_package(GTest REQUIRED)
+
+include_directories(${GTEST_INCLUDE_DIRS})
 
 # 2. Add Subdirectories in Dependency Order
 # We must generate the raw proto library before the logic library can use it
