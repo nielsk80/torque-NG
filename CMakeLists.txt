@@ -10,6 +10,9 @@ project(torque-NG LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+# Initialize the Ctest infrastructure
+enable_testing()
+
 # 1. Find Protobuf globally
 find_package(Protobuf REQUIRED)
 
@@ -20,3 +23,4 @@ add_subdirectory(src/lib/Liblog)
 add_subdirectory(src/lib/Libutils)
 add_subdirectory(src/lib/Libnet)
 add_subdirectory(src/lib/Libproto)
+add_subdirectory(tests/lib/Libproto)

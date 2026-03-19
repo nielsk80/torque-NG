@@ -1,0 +1,69 @@
+// Copyright (c) 2026 Kenneth Nielson. All rights reserved.
+// This file is part of the torque-NG project.
+// 
+// torque-NG is a modernization of the TORQUE Resource Manager.
+// Licensed under the [Your Chosen License, e.g., Adaptive Public License or MIT].
+//
+// Description: Defines the core Protobuf message structures for 
+// pbs_server, pbs_mom, and pbs_sched communication.
+
+syntax = "proto3";
+
+package torque_ng;
+
+// --- Sub-Messages for specific commands ---
+
+message JobSubmitRequest {
+    string job_name = 1;
+    string user_name = 2;
+    string script_content = 3;
+    map<string, string> resources = 4; // e.g., "nodes": "1", "walltime": "01:00:00"
+}
+
+message JobDeleteRequest {
+    string job_id = 1;
+    string reason = 2;
+    bool force = 3;
+}
+
+message JobStatusRequest {
+    string job_id = 1; // If empty, request all jobs
+}
+
+// Information sent when a job exits (Command 56)
+message JobObituary {
+    string job_id = 1;
+    int32 exit_status = 2;
+    string node_name = 3;
+    
+    // Resource accounting
+    message ResourcesUsed {
+        uint64 cpu_time_seconds = 1;
+        uint64 mem_bytes = 2;
+        uint64 vmem_bytes = 3;
+        uint64 walltime_seconds = 4;
+    }
+    ResourcesUsed resources = 4;
+}
+
+// --- The Top-Level "Envelope" ---
+
+message TorqueRequest {
+    // This replaces the old PBS_BATCH_ enum logic
+    oneof payload {
+        JobSubmitRequest submit = 1;
+        JobDeleteRequest delete = 2;
+        JobStatusRequest status = 3;
+        JobObituary obituary = 4;
+    }
+}
+
+message TorqueReply {
+    int32 error_code = 1; // We'll map our TorqueErrors.hpp here
+    string error_message = 2;
+    
+    oneof data {
+        string job_id_created = 3; // For Submit
+        string status_info = 4;    // For Status (later a structured message)
+    }
+}
