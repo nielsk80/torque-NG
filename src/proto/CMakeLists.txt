@@ -10,6 +10,7 @@ cmake_minimum_required(VERSION 3.10)
 protobuf_generate_cpp(PROTO_SRCS PROTO_HDRS 
     job_status.proto 
     torque_messages.proto
+    torque_ng.proto
 )
 
 # 2. Create the Protocol Library

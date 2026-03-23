@@ -12,142 +12,127 @@ package torque_ng;
 
 import "google/protobuf/timestamp.proto";
 
-// Protocol-level errors (Did the message arrive? Is the client authorized?)
+// Protocol-level errors
 enum TorqueProtobufError {
   TORQUE_OK = 0;
-  TORQUE_UNKNOWN_ERROR = 1; [cite: 2]
+  TORQUE_UNKNOWN_ERROR = 1;
   TORQUE_MALFORMED_REQUEST = 2;
-  TORQUE_ACCESS_DENIED = 3;     // Connection-level auth failure
+  TORQUE_ACCESS_DENIED = 3;
   TORQUE_VERSION_MISMATCH = 4;
-} [cite: 3]
+}
 
-// A reusable message to carry internal PBSE results over the wire
+// Internal PBSE results 
 message TorqueStatus {
   bool success = 1;
-  int32 pbse_code = 2;          // The raw code from TorqueErrors.hpp [cite: 4]
-  string message = 3;           [cite_start]// Human-readable detail for logging [cite: 5]
+  int32 pbse_code = 2;
+  string message = 3;
 }
 
 // --- Data Models ---
 
 message ResourceList {
   map<string, int64> int_resources = 1;
-  map<string, uint64> size_resources = 2; [cite: 6]
+  map<string, uint64> size_resources = 2;
   map<string, string> string_resources = 3;
 }
 
 message Job {
-  // Identification
   string job_id = 1;
-  string job_name = 2; [cite: 7]
-  
-  // Ownership and Permissions
+  string job_name = 2;
   string owner_name = 3;
   string effective_user_name = 4;
   string effective_group_name = 5;
   string email_addr = 6;
 
-  // State and Scheduling
-  enum JobState { [cite: 8]
+  enum JobState {
     TRANSIT = 0;
     QUEUED = 1;
     HELD = 2;
     WAITING = 3;
-    RUNNING = 4; [cite: 9]
+    RUNNING = 4;
     EXITING = 5;
     COMPLETE = 6;
   }
+  
   JobState state = 7;
   int32 priority = 8;
-  
-  // Flags
-  bool is_rerunnable = 9; [cite: 10]
+  bool is_rerunnable = 9;
   bool is_interactive = 10;
 
-  // Timestamps
   google.protobuf.Timestamp created_at = 11;
 
-  // File Staging
   string stage_in_files = 12;
   string stage_out_files = 13;
 
-  // Resource Tracking
-  ResourceList resources_requested = 14; [cite: 11]
+  ResourceList resources_requested = 14;
   ResourceList resources_used = 15;
 
-  // Location Metadata
   string server_id = 16;
   string queue_name = 17;
-} [cite: 12]
+}
 
 message Node {
   string name = 1;
   
-  enum State {
+  enum NodeState {
     FREE = 0;
     OFFLINE = 1;
-    DOWN = 2; [cite: 13]
+    DOWN = 2;
     RESERVED = 3;
     JOB_EXCLUSIVE = 4;
     BUSY = 5;
     UNKNOWN = 6;
-  } [cite: 14]
+  }
   
-  State state = 2;
+  NodeState state = 2;
   int32 pcpus = 3;
   ResourceList resources = 4;
   string note = 5;
-} [cite: 15]
+}
 
 // --- Service Messages (Envelope Pattern) ---
 
 message TorqueRequest {
-  // Field numbers for Dispatcher.hpp switch cases
   oneof payload {
     JobDeleteRequest delete = 1;
-    JobSubmitRequest submit = 2;   [cite: 16]
+    JobSubmitRequest submit = 2;  
     JobObituary obituary = 3;
     JobStatusRequest status = 4;
   }
 }
 
 message TorqueReply {
-  int32 error_code = 1;            // This will map to your PBSE codes [cite: 17]
-  string error_message = 2; [cite: 18]
+  int32 error_code = 1;
+  string error_message = 2;
 }
 
 // --- Command Specific Messages ---
 
-// Job Deletion (qdel)
 message JobDeleteRequest {
   string job_id = 1;
-  string reason = 2; [cite: 19]
+  string reason = 2;
   bool force = 3;
 }
 
-// Job Status (qstat)
 message JobStatusRequest {
-  string job_id = 1; [cite: 21]
+  string job_id = 1;
 }
 
-// Job Submission (qsub)
 message JobSubmitRequest {
   Job job = 1;
 }
 
-// Job Completion notification
 message JobObituary {
   string job_id = 1;
   int32 exit_status = 2;
 }
 
-// Node Status (pbsnodes)
 message GetNodeStatusRequest {
   string node_name = 1;
 }
 
 message GetNodeStatusResponse {
   TorqueProtobufError transport_error = 1;
-  TorqueStatus result = 2; [cite: 23]
+  TorqueStatus result = 2;
   repeated Node nodes = 3;
 }
