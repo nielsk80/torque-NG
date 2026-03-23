@@ -1,20 +1,45 @@
+/*
+ * torque-NG: Next Generation Resource Manager
+ *
+ * Copyright (c) 2026 Kenneth Nielson.
+ * Portions Copyright (c) 1999-2000 Veridian Information Solutions, Inc.
+ * Licensed under the OpenPBS v2.3 Software License.
+ */
+
 syntax = "proto3";
 
 package torque_ng;
 
 import "google/protobuf/timestamp.proto";
 
-// Represents the IntRes, SizeRes, and StringRes structs
+// Protocol-level errors (Did the message arrive? Is the client authorized?)
+enum TorqueProtobufError {
+  TORQUE_OK = 0;
+  TORQUE_UNKNOWN_ERROR = 1; [cite: 2]
+  TORQUE_MALFORMED_REQUEST = 2;
+  TORQUE_ACCESS_DENIED = 3;     // Connection-level auth failure
+  TORQUE_VERSION_MISMATCH = 4;
+} [cite: 3]
+
+// A reusable message to carry internal PBSE results over the wire
+message TorqueStatus {
+  bool success = 1;
+  int32 pbse_code = 2;          // The raw code from TorqueErrors.hpp [cite: 4]
+  string message = 3;           [cite_start]// Human-readable detail for logging [cite: 5]
+}
+
+// --- Data Models ---
+
 message ResourceList {
   map<string, int64> int_resources = 1;
-  map<string, uint64> size_resources = 2;
+  map<string, uint64> size_resources = 2; [cite: 6]
   map<string, string> string_resources = 3;
 }
 
 message Job {
   // Identification
   string job_id = 1;
-  string job_name = 2;
+  string job_name = 2; [cite: 7]
   
   // Ownership and Permissions
   string owner_name = 3;
@@ -23,12 +48,12 @@ message Job {
   string email_addr = 6;
 
   // State and Scheduling
-  enum JobState {
+  enum JobState { [cite: 8]
     TRANSIT = 0;
     QUEUED = 1;
     HELD = 2;
     WAITING = 3;
-    RUNNING = 4;
+    RUNNING = 4; [cite: 9]
     EXITING = 5;
     COMPLETE = 6;
   }
@@ -36,7 +61,7 @@ message Job {
   int32 priority = 8;
   
   // Flags
-  bool is_rerunnable = 9;
+  bool is_rerunnable = 9; [cite: 10]
   bool is_interactive = 10;
 
   // Timestamps
@@ -47,84 +72,82 @@ message Job {
   string stage_out_files = 13;
 
   // Resource Tracking
-  ResourceList resources_requested = 14;
+  ResourceList resources_requested = 14; [cite: 11]
   ResourceList resources_used = 15;
 
   // Location Metadata
   string server_id = 16;
   string queue_name = 17;
-}
+} [cite: 12]
 
-// Data model for compute nodes
 message Node {
   string name = 1;
   
   enum State {
     FREE = 0;
     OFFLINE = 1;
-    DOWN = 2;
+    DOWN = 2; [cite: 13]
     RESERVED = 3;
     JOB_EXCLUSIVE = 4;
     BUSY = 5;
     UNKNOWN = 6;
-  }
+  } [cite: 14]
   
   State state = 2;
   int32 pcpus = 3;
   ResourceList resources = 4;
   string note = 5;
+} [cite: 15]
+
+// --- Service Messages (Envelope Pattern) ---
+
+message TorqueRequest {
+  // Field numbers for Dispatcher.hpp switch cases
+  oneof payload {
+    JobDeleteRequest delete = 1;
+    JobSubmitRequest submit = 2;   [cite: 16]
+    JobObituary obituary = 3;
+    JobStatusRequest status = 4;
+  }
 }
 
-// --- Service Messages ---
+message TorqueReply {
+  int32 error_code = 1;            // This will map to your PBSE codes [cite: 17]
+  string error_message = 2; [cite: 18]
+}
+
+// --- Command Specific Messages ---
 
 // Job Deletion (qdel)
 message JobDeleteRequest {
   string job_id = 1;
-  string reason = 2;
+  string reason = 2; [cite: 19]
   bool force = 3;
 }
 
-message JobDeleteResponse {
-  enum DeleteStatus {
-    SUCCESS = 0;
-    JOB_NOT_FOUND = 1;
-    PERMISSION_DENIED = 2;
-    SERVER_ERROR = 3;
-  }
-  DeleteStatus status = 1;
-  string message = 2;
-}
-
 // Job Status (qstat)
-message GetJobStatusRequest {
-  string job_id = 1;
-  string message = 2;
+message JobStatusRequest {
+  string job_id = 1; [cite: 21]
 }
 
-message GetJobStatusResponse {
-  enum Status {
-    FOUND = 0;
-    NOT_FOUND = 1;
-    PERMISSION_DENIED = 2;
-  }
-  Status status = 1;
-  repeated Job jobs = 2;
-  string message = 3;
+// Job Submission (qsub)
+message JobSubmitRequest {
+  Job job = 1;
+}
+
+// Job Completion notification
+message JobObituary {
+  string job_id = 1;
+  int32 exit_status = 2;
 }
 
 // Node Status (pbsnodes)
 message GetNodeStatusRequest {
   string node_name = 1;
-  string message = 2;
 }
 
 message GetNodeStatusResponse {
-  enum RequestStatus {
-    SUCCESS = 0;
-    NODE_NOT_FOUND = 1;
-    ERROR = 2;
-  }
-  RequestStatus status = 1;
-  repeated Node nodes = 2;
-  string message = 3;
+  TorqueProtobufError transport_error = 1;
+  TorqueStatus result = 2; [cite: 23]
+  repeated Node nodes = 3;
 }
