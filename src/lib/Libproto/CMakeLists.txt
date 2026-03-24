@@ -20,19 +20,7 @@ target_include_directories(torque_proto_logic PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}
 )
 
-# 3. Define the Test Binaries
-add_executable(server_test server_test.cpp)
-add_executable(client_test client_test.cpp)
-
-# 4. Target-Specific Includes for Networking
-# Allows tests to find NetworkManager.hpp from Libnet
-target_include_directories(server_test PRIVATE ${PROJECT_SOURCE_DIR}/src/lib/Libnet)
-target_include_directories(client_test PRIVATE ${PROJECT_SOURCE_DIR}/src/lib/Libnet)
-
 # 5. Dependency Linking
 # This connects the logic to the generated protobuf code
 target_link_libraries(torque_proto_logic PUBLIC torque_proto)
 
-# Connect the tests to the logic and the network transport
-target_link_libraries(server_test PRIVATE torque_proto_logic net_ng)
-target_link_libraries(client_test PRIVATE torque_proto_logic net_ng)

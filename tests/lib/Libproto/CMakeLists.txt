@@ -36,6 +36,11 @@ foreach(test_target test_delete test_submit test_job_status test_dispatcher test
     )
 endforeach()
 
+target_include_directories(test_job_status PRIVATE 
+    ${CMAKE_SOURCE_DIR}/src/lib/Libutils
+    ${CMAKE_BINARY_DIR}/src/proto # For torque_ng.pb.h
+)
+
 # 4. CTest registration
 add_test(NAME Libproto_Dispatcher_Test COMMAND test_dispatcher)
 add_test(NAME Libproto_Obituary_Test   COMMAND test_obituary)

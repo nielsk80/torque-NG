@@ -51,3 +51,4 @@ configure
 autom4te.cache/
 src/include/site_*.h
 src/include/pbs_config.h
+clean_build.sh

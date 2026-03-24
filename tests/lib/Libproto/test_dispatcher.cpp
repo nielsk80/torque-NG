@@ -8,7 +8,7 @@
 
 #include <gtest/gtest.h>
 #include "Dispatcher.hpp"
-#include "torque_messages.pb.h"
+#include "torque_ng.pb.h"
 
 // Test Case 1: Verify successful registration and routing of a Delete request
 TEST(DispatcherTest, RouteDeleteRequest) {
@@ -47,7 +47,7 @@ TEST(DispatcherTest, UnregisteredHandlerReturnsError) {
     
     // Create a request (Submit) but don't register a handler for it
     torque_ng::TorqueRequest incoming_msg;
-    incoming_msg.mutable_submit()->set_job_name("TestJob");
+    incoming_msg.mutable_submit()->mutable_job()->set_job_name("TestJob");
 
     torque_ng::TorqueReply result = dispatcher.route(incoming_msg);
 

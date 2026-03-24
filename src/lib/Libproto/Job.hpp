@@ -8,7 +8,7 @@
 
 #pragma once
 
-#include "job_status.pb.h"
+#include "torque_ng.pb.h"
 #include <string>
 #include <string_view>
 #include <memory>
@@ -16,14 +16,14 @@
 
 namespace torque_ng {
 
-class Job {
+class JobEntity {
 public:
-    explicit Job(std::string_view job_id);
-    ~Job() = default;
+    explicit JobEntity(std::string_view job_id);
+    ~JobEntity() = default;
 
     // Identity and State
     void set_owner(std::string_view owner);
-    void set_state(int32_t state, int32_t sub_state = 0);
+    void set_job_state(torque_ng::Job::JobState state, torque_ng::Job::JobSubState sub_state = torque_ng::Job::SUB_NONE);
     void set_interactive(bool interactive);
 
     // Resource Management
@@ -43,10 +43,10 @@ public:
     // Serialization
     std::string_view get_id() const;
     std::string serialize() const;
-    static std::unique_ptr<Job> deserialize(const std::string& data);
+    static std::unique_ptr<JobEntity> deserialize(const std::string& data);
 
 private:
-    std::unique_ptr<JobStatusUpdate> m_msg;
+    std::unique_ptr<torque_ng::JobStatusUpdate> m_msg;
 };
 
 } // namespace torque_ng

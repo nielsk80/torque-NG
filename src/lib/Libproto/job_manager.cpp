@@ -6,7 +6,7 @@
  * Licensed under the OpenPBS v2.3 Software License.
  */
 
-#include "job_status.pb.h"
+#include "torque_ng.pb.h"
 #include <string_view>
 #include <iostream>
 

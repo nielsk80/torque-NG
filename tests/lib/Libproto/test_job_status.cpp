@@ -2,11 +2,12 @@
 // Copyright (c) 2026 Kenneth Nielson.
 // SPDX-License-Identifier: OpenPBS-2.3
 
+#include "JobStateMapper.hpp"
+#include "torque_ng.pb.h"
+#include "Dispatcher.hpp"
 #include <iostream>
 #include <cassert>
 #include <vector>
-#include "Dispatcher.hpp"
-#include "torque_messages.pb.h"
 
 int main() {
     // Verify protobuf library version compatibility
@@ -23,18 +24,19 @@ int main() {
         auto* status_response = reply.mutable_status_data();
 
         // Create a small vector of dummy data to simulate a loop over a job list
-        struct DummyJob { std::string id; std::string name; std::string state; };
+        struct DummyJob { std::string id; std::string name; std::string state; std::string substate; };
         std::vector<DummyJob> jobs = {
-            {"101.local", "Compile_Task", "Running"},
-            {"102.local", "Link_Task",    "Queued"},
-            {"103.local", "Cleanup",      "Exiting"}
+            {"101.local", "Compile_Task", "Running", "0"},
+            {"102.local", "Link_Task",    "Queued",  "1"},
+            {"103.local", "Cleanup",      "Exiting", "2"}
         };
 
         for (const auto& j : jobs) {
             auto* info = status_response->add_jobs();
             info->set_job_id(j.id);
             info->set_job_name(j.name);
-            info->set_state(j.state);
+            info->set_job_state(torque_ng::utils::JobStateMapper::from_string(j.state));
+            info->set_job_substate(torque_ng::utils::JobStateMapper::sub_from_string(j.substate));
         }
 
         return reply;
@@ -55,7 +57,7 @@ int main() {
     
     for (int i = 0; i < data.jobs_size(); ++i) {
         std::cout << "  Job[" << i << "]: " << data.jobs(i).job_id() 
-                  << " (" << data.jobs(i).state() << ")" << std::endl;
+                  << " (" << data.jobs(i).job_state() << ")" << std::endl;
     }
 
     assert(data.jobs_size() == 3);

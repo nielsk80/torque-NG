@@ -36,6 +36,22 @@ message ResourceList {
   map<string, string> string_resources = 3;
 }
 
+// Consolidated resource structure for JobEntity logic and tests
+message ResourceUsage {
+  uint64 mem_bytes = 1;
+  uint64 vmem_bytes = 2;
+  double walltime_used = 3;
+  uint64 cpu_time_seconds = 4; // Required for obituary tests
+}
+
+message ResourceLimits {
+  uint64 req_mem = 1;
+  uint64 req_vmem = 2;
+  uint32 req_nodes = 3;
+  uint32 req_procs = 4;
+  double req_walltime = 5;
+}
+
 message Job {
   string job_id = 1;
   string job_name = 2;
@@ -53,8 +69,17 @@ message Job {
     EXITING = 5;
     COMPLETE = 6;
   }
-  
+
+  enum JobSubState {
+    SUB_NONE = 0;
+    SUB_TRANSIT_REQUEUED = 10;
+    SUB_STAGE_IN = 20;
+    SUB_STAGE_OUT = 30;
+    SUB_EXITING_CLEANUP = 40;
+  }
+
   JobState state = 7;
+  JobSubState sub_state = 18;
   int32 priority = 8;
   bool is_rerunnable = 9;
   bool is_interactive = 10;
@@ -69,6 +94,33 @@ message Job {
 
   string server_id = 16;
   string queue_name = 17;
+}
+
+// Message wrapped by the JobEntity logic class
+message JobStatusUpdate {
+  string job_id = 1;
+  string job_name = 14;
+  string user_owner = 2;
+  Job.JobState job_state = 3;
+  Job.JobSubState job_substate = 4;
+  bool is_interactive = 5;
+  
+  // These generate the mutable_*() helpers used in Job.cpp
+  ResourceUsage resources_used = 6; 
+  ResourceLimits limits = 7;
+  
+  string exec_host = 8;
+  int32 exit_status = 9;
+  uint64 queue_time = 10;
+  uint64 modify_time = 11;
+
+  // Maps for metadata
+  map<string, string> attributes = 12;
+  map<string, string> environment_vars = 13;
+}
+
+message JobStatusResponse {
+  repeated JobStatusUpdate jobs = 1;
 }
 
 message Node {
@@ -98,12 +150,19 @@ message TorqueRequest {
     JobSubmitRequest submit = 2;  
     JobObituary obituary = 3;
     JobStatusRequest status = 4;
+    JobStatusUpdate update = 5; 
   }
 }
+
 
 message TorqueReply {
   int32 error_code = 1;
   string error_message = 2;
+  
+  oneof body {
+    TorqueStatus generic_status = 4;
+    JobStatusResponse status_data = 3;
+  }
 }
 
 // --- Command Specific Messages ---
@@ -125,6 +184,8 @@ message JobSubmitRequest {
 message JobObituary {
   string job_id = 1;
   int32 exit_status = 2;
+  string node_name = 3;
+  ResourceUsage resources = 4;
 }
 
 message GetNodeStatusRequest {

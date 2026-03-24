@@ -8,7 +8,7 @@
 
 #include <gtest/gtest.h>
 #include "Dispatcher.hpp"
-#include "torque_messages.pb.h"
+#include "torque_ng.pb.h"
 
 // The TEST macro defines a test case. 
 // LibprotoTest is the Group, ObituaryHandling is the specific test name.
