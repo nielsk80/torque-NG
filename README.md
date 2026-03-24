@@ -3,35 +3,43 @@
 [![License](https://img.shields.io/badge/License-TORQUE_v2.5-blue.svg)](LICENSE)
 [![C++ Standard](https://img.shields.io/badge/C%2B%2B-17-orange.svg)](https://en.cppreference.com/w/cpp/17)
 [![Platform](https://img.shields.io/badge/Platform-Linux-lightgrey.svg)](https://www.kernel.org/)
+[![Build Status](https://img.shields.io/badge/Tests-6%2F6%20Passing-success.svg)](#-current-status--testing)
 
-## ⚠️ Project Status: Experimental Alpha
-**Torque-NG is currently in active initial development and is NOT ready for production use.** We are in the process of a "Grand Refactor," transitioning the core libraries from legacy C to C++17. While the foundational `Libutils` now compiles with modern topology and cgroup support, the higher-level daemon logic (MOM/Server) is still being integrated. Use this code for development, testing, and architectural review only.
+## ⚠️ Project Status: Active Development (Alpha)
+**Torque-NG is in the "Grand Refactor" phase.** While the higher-level daemon logic is being integrated, the core protocol and utility libraries are now stable and verified. This project transitions the legacy C codebase into a type-safe, performant C++17 ecosystem.
 
 ---
 
 ## 📖 Project Overview & Vision
 
-[cite_start]Torque-NG (Next Generation) is an ambitious revival of the original TORQUE Resource Manager[cite: 1]. [cite_start]TORQUE has historically been a cornerstone of HPC, originating from the original PBS resource manager developed by NASA, LLNL, and MRJ[cite: 2].
+Torque-NG is an ambitious revival of the original TORQUE Resource Manager. TORQUE has historically been a cornerstone of HPC, originating from the original PBS resource manager developed by NASA, LLNL, and MRJ.
 
-[cite_start]The project incorporates significant advancements in scalability, fault-tolerance, and security contributed by organizations such as OSC, NCSA, TeraGrid, the U.S. Dept of Energy, USC, and many others[cite: 3, 4]. However, as hardware has evolved—introducing hybrid P/E-core architectures and ARM-based clusters—and Linux kernel resource management moved to the Unified Cgroup V2 hierarchy, the original codebase became a victim of technical debt. 
-
-### Our Mission
-Our goal is to provide a lightweight, modern, and highly-performant alternative to complex schedulers, specifically optimized for:
+The project incorporates significant advancements in scalability and fault-tolerance contributed by organizations such as OSC, NCSA, TeraGrid, the U.S. Dept of Energy, USC, and many others. Our mission is to modernize this foundation for:
 * **Modern Linux Kernels**: Native, first-class integration with Cgroup V2.
-* **Heterogeneous Compute**: Intelligent placement on systems with mixed core efficiencies (Intel Hybrid, ARM big.LITTLE).
-* **Developer Productivity**: A clean, C++17 codebase that is easy to audit, extend, and maintain.
-
-
+* **Type-Safe Communications**: Replacing legacy DIS protocols with Google Protocol Buffers.
+* **Developer Productivity**: A clean, C++17 codebase that is easy to audit and maintain.
 
 ---
 
 ## 🌟 Key Modernizations
 
-* **C++17 Architecture**: Replaced legacy C-style utilities and manual memory management with RAII, standard library containers, and thread-safe patterns.
-* **Heterogeneous Topology Awareness**: Integrated with **hwloc 2.x** to intelligently schedule across **Intel/AMD Hybrid cores (P/E-cores)** and **ARM64 (big.LITTLE/Clusters)**.
-* **Linux Cgroup V2**: Native support for the unified control group hierarchy, providing superior resource isolation and management.
-* **ARM64 Optimization**: First-class support for ARM-based clusters (AWS Graviton, Ampere Altra), ensuring efficient task placement on complex cache hierarchies.
-* **Security & Safety**: Refactored privilege-dropping logic (`UserContext`) using reentrant system calls to eliminate legacy race conditions.
+* **Protocol Buffers Integration**: Migrated communication logic to Protobuf for robust, language-agnostic serialization and structured message handling.
+* **Scoped Type Safety**: Eliminated "primitive obsession" by replacing integer-based states with scoped Enums (`JobState`, `JobSubState`).
+* **C++17 Architecture**: Replaced manual memory management with RAII, standard library containers, and modern thread-safe patterns.
+* **Legacy Bridge**: Implemented a centralized `JobStateMapper` to handle the transition between legacy Torque string codes and modern internal types.
+* **Linux Cgroup V2**: Native support for the unified control group hierarchy, providing superior resource isolation.
+* **Topology Awareness**: Integrated with **hwloc 2.x** for intelligent scheduling across P/E-core and ARM architectures.
+
+---
+
+## 🧪 Current Status & Testing
+
+The core protocol logic is now verified through a comprehensive GoogleTest suite.
+
+* ✅ **6/6 Unit Tests Passing**
+* ✅ `JobSubmitRequest` wrapper and nested `Job` messaging verified.
+* ✅ `ResourceList` map-based limits (nodes, procs) implemented and tested.
+* ✅ `JobStatusUpdate` and state transition logic stable.
 
 ---
 
@@ -40,9 +48,10 @@ Our goal is to provide a lightweight, modern, and highly-performant alternative 
 To build Torque-NG, you will need:
 * **Compiler**: GCC 9+ or Clang 10+ (C++17 support required)
 * **Build System**: CMake 3.12+
-* **Libraries**:
+* **Dependencies**:
+    * `protobuf` (3.x+) - Protocol Buffer compiler and runtime
+    * `gtest` - Google Test framework
     * `hwloc` (2.0+) - Hardware topology discovery
-    * `libjsoncpp` - Modern configuration and serialization
     * `libssl` / `libcrypto` - Secure communication
 
 ---
@@ -51,12 +60,9 @@ To build Torque-NG, you will need:
 
 ### Building from Source
 
-> **WARNING**: Code is currently under construction. The CMake configuration is premature and does not yet compile the entire project.
-
 ```bash
 git clone git@github.com:nielsk80/torque-NG.git
 cd torque-NG
 mkdir build && cd build
 cmake ..
 make -j$(nproc)
-sudo make install
