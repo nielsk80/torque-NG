@@ -19,6 +19,7 @@ set(LIBUTILS_SOURCES
     allocation.cpp
     user_context.cpp
     jsoncpp.cpp
+    ResourceParser.cpp
 )
 
 # 3. Create Library
@@ -29,6 +30,7 @@ add_library(utils_ng STATIC ${LIBUTILS_SOURCES})
 target_include_directories(utils_ng 
     PUBLIC  ${CMAKE_CURRENT_SOURCE_DIR}
     PUBLIC  ${CMAKE_CURRENT_SOURCE_DIR}/../../include
+    ${CMAKE_BINARY_DIR}/src/proto # For torque_ng.pb.h
     PRIVATE ${HWLOC_INCLUDE_DIRS}
 )
 
