@@ -39,7 +39,7 @@ TEST_F(SerializationTest, JobObjectIntegrity) {
     torque_ng::Job original;
     original.set_job_id("1234.localhost");
     original.set_job_name("Compute_Kernels");
-    original.set_owner_name("knielson");
+    original.set_job_owner("knielson");
     original.set_state(torque_ng::Job::RUNNING);
 
     // Set a timestamp
@@ -49,7 +49,7 @@ TEST_F(SerializationTest, JobObjectIntegrity) {
     auto recovered = round_trip(original);
 
     EXPECT_EQ(recovered.job_id(), "1234.localhost");
-    EXPECT_EQ(recovered.owner_name(), "knielson");
+    EXPECT_EQ(recovered.job_owner(), "knielson");
     EXPECT_EQ(recovered.state(), torque_ng::Job::RUNNING);
     EXPECT_EQ(recovered.created_at().seconds(), now.seconds());
 }

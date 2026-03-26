@@ -15,8 +15,8 @@ JobEntity::JobEntity(std::string_view job_id) : m_msg(std::make_unique<torque_ng
     m_msg->set_job_id(std::string(job_id));
 } 
 
-void JobEntity::set_owner(std::string_view owner) {
-    m_msg->set_user_owner(std::string(owner));
+void JobEntity::set_job_owner(std::string_view owner) {
+    m_msg->set_job_owner(std::string(owner));
 }
 
 void JobEntity::set_job_state(torque_ng::Job::JobState state, torque_ng::Job::JobSubState sub_state) {

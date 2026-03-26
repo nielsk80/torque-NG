@@ -13,7 +13,7 @@ TEST(LibprotoTest, HandleSubmitRequest) {
         
         // 2. Create the server-side JobEntity
         torque_ng::JobEntity new_job("1.localhost");
-        new_job.set_owner(job_data.owner_name());
+        new_job.set_job_owner(job_data.job_owner());
         
         // 3. Map resource strings from the ResourceList maps
         // Accessing the string_resources map inside resources_requested
@@ -39,7 +39,7 @@ TEST(LibprotoTest, HandleSubmitRequest) {
     
     // Set basic Job fields
     job->set_job_name("ComputePi");
-    job->set_owner_name("knielson");
+    job->set_job_owner("knielson");
     
     // Set resources: navigate to the string_resources map
     auto* string_res = job->mutable_resources_requested()->mutable_string_resources();
