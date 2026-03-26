@@ -24,7 +24,7 @@ NodeStatusManager::NodeStatusManager(const std::string& state_file, size_t max_n
 }
 
 size_t NodeStatusManager::get_or_create_index(const std::string& name) {
-    std::lock_guard<std::mutex> lock(registration_mutex_);
+    std::scoped_lock lock(registration_mutex_);
     
     auto it = name_to_index_.find(name);
     if (it != name_to_index_.end()) {
