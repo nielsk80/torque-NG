@@ -67,7 +67,16 @@ TEST_F(SerializationTest, JobObjectIntegrity) {
     original.set_job_id("1234.localhost");
     original.set_job_name("Compute_Kernels");
     original.set_job_owner("knielson");
+    original.set_queue_name("batch");
     original.set_state(torque_ng::Job::RUNNING);
+    original.set_substate(torque_ng::Job::SUB_NONE);
+    original.set_priority(50);
+    
+    // Resource Maps
+    auto* req = original.mutable_resources_requested();
+    req->mutable_int_resources()->insert({"ncpus", 16});
+    req->mutable_size_resources()->insert({"mem", 32ULL * 1024 * 1024 * 1024});
+    req->mutable_string_resources()->insert({"arch", "x86_64"});
 
     // Set a timestamp
     auto now = TimeUtil::GetCurrentTime();
@@ -75,10 +84,24 @@ TEST_F(SerializationTest, JobObjectIntegrity) {
 
     auto recovered = round_trip(original);
 
+    // Scalar fields
     EXPECT_EQ(recovered.job_id(), "1234.localhost");
+    EXPECT_EQ(recovered.job_name(), "Compute_Kernels");
     EXPECT_EQ(recovered.job_owner(), "knielson");
+    EXPECT_EQ(recovered.queue_name(), "batch");
     EXPECT_EQ(recovered.state(), torque_ng::Job::RUNNING);
+    EXPECT_EQ(recovered.substate(), torque_ng::Job::SUB_NONE);
+    EXPECT_EQ(recovered.priority(), 50);
+
+    // Map fields (Resources)
+    EXPECT_EQ(recovered.resources_requested().int_resources().at("ncpus"), 16);
+    EXPECT_EQ(recovered.resources_requested().size_resources().at("mem"), 32ULL * 1024 * 1024 * 1024);
+    EXPECT_EQ(recovered.resources_requested().string_resources().at("arch"), "x86_64");
+
+
+    // Timestamp field
     EXPECT_EQ(recovered.created_at().seconds(), now.seconds());
+    EXPECT_EQ(recovered.created_at().nanos(), now.nanos());
 }
 
 // 3. Test TorqueReply Error Handling
