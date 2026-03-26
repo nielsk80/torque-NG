@@ -73,13 +73,13 @@ public:
 
     // Inside JobStateMapper class
    static Job::JobSubState sub_from_string(const std::string& sub_str) {
-      if (sub_str.empty()) return Job::SUB_NONE;
+      if (sub_str.empty()) return Job::SUBSTATE_NONE;
     
       // Add logic here to map your substate strings
-      if (sub_str == "STAGE_IN") return Job::SUB_STAGE_IN;
+      if (sub_str == "STAGE_IN") return Job::SUBSTATE_STAGEIN;
       // ...
     
-      return Job::SUB_NONE;
+      return Job::SUBSTATE_NONE;
    }
 };
 

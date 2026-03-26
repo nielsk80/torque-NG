@@ -23,7 +23,7 @@ public:
 
     // Identity and State
     void set_job_owner(std::string_view owner);
-    void set_job_state(torque_ng::Job::JobState state, torque_ng::Job::JobSubState sub_state = torque_ng::Job::SUB_NONE);
+    void set_job_state(torque_ng::Job::JobState state, torque_ng::Job::JobSubState sub_state = torque_ng::Job::SUBSTATE_NONE);
     void set_interactive(bool interactive);
 
     // Resource Management

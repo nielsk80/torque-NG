@@ -93,12 +93,21 @@ message Job {
     EXITING = 5; 
     COMPLETE = 6;
   }
-  enum JobSubState {
-    SUB_NONE = 0; 
-    SUB_TRANSIT = 1; 
-    SUB_EXCEED_MEM = 2; 
-    SUB_STAGE_IN = 3;
-  }
+
+enum JobSubState {
+    SUBSTATE_NONE = 0;
+    SUBSTATE_TRANSIT = 1;
+    SUBSTATE_QUEUED = 2;
+    SUBSTATE_HELD = 3;
+    SUBSTATE_WAITING = 4;
+    SUBSTATE_STAGEIN = 5;
+    SUBSTATE_STARTING = 6;
+    SUBSTATE_RUNNING = 7;
+    SUBSTATE_SUSPENDED = 8;
+    SUBSTATE_EXITING = 9;
+    SUBSTATE_STAGEOUT = 10;
+}
+
   JobState state = 7;
   JobSubState substate = 8; 
   int32 priority = 9;

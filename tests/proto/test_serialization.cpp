@@ -69,7 +69,7 @@ TEST_F(SerializationTest, JobObjectIntegrity) {
     original.set_job_owner("knielson");
     original.set_queue_name("batch");
     original.set_state(torque_ng::Job::RUNNING);
-    original.set_substate(torque_ng::Job::SUB_NONE);
+    original.set_substate(torque_ng::Job::SUBSTATE_RUNNING);
     original.set_priority(50);
     
     // Resource Maps
@@ -90,7 +90,7 @@ TEST_F(SerializationTest, JobObjectIntegrity) {
     EXPECT_EQ(recovered.job_owner(), "knielson");
     EXPECT_EQ(recovered.queue_name(), "batch");
     EXPECT_EQ(recovered.state(), torque_ng::Job::RUNNING);
-    EXPECT_EQ(recovered.substate(), torque_ng::Job::SUB_NONE);
+    EXPECT_EQ(recovered.substate(), torque_ng::Job::SUBSTATE_RUNNING);
     EXPECT_EQ(recovered.priority(), 50);
 
     // Map fields (Resources)
