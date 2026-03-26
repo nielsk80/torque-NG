@@ -1,6 +1,8 @@
 #include <gtest/gtest.h>
 #include <google/protobuf/util/time_util.h>
 #include "torque_ng.pb.h"
+#include <google/protobuf/io/coded_stream.h>
+#include <google/protobuf/io/zero_copy_stream_impl_lite.h>
 
 using google::protobuf::util::TimeUtil;
 
@@ -17,6 +19,31 @@ protected:
         return output;
     }
 };
+
+TEST_F(SerializationTest, VerifyPackedEncodingEfficiency) {
+    torque_ng::JobIndexBatch batch;
+    const int num_entries = 100;
+
+    // Fill a packed field (priorities is [packed = true])
+    for (int i = 0; i < num_entries; ++i) {
+        batch.add_priorities(100); 
+    }
+
+    std::string serialized;
+    batch.SerializeToString(&serialized);
+
+    // LOGIC:
+    // Tag for field 3 (priorities) is 1 byte.
+    // In Proto3, int32 '100' takes 1 byte as a varint.
+    // Non-packed size: 100 * (1 tag + 1 value) = 200 bytes.
+    // Packed size: 1 tag + 1 length byte + (100 * 1 value) = 102 bytes.
+    
+    EXPECT_LT(serialized.size(), 110); 
+    EXPECT_GT(serialized.size(), 100);
+
+    std::cout << "[ INFO ] Serialized size for 100 packed ints: " 
+              << serialized.size() << " bytes" << std::endl;
+}
 
 // 1. Test ResourceList Map Serialization
 TEST_F(SerializationTest, ResourceListPreservesMaps) {
