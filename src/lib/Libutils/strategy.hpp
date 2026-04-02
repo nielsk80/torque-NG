@@ -1,5 +1,5 @@
 #pragma once
-#include "job.hpp"
+#include "JobStruct.hpp"
 #include "topology.hpp"
 #include <vector>
 

@@ -1,5 +1,6 @@
 #pragma once
 #include <string>
+#include <cstdint>
 
 struct Job {
   uint32_t id;
