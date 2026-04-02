@@ -1,36 +1,32 @@
 # tests/proto/CMakeLists.txt
+# Copyright (c) 2026 Kenneth Nielson.
+# Licensed under the OpenPBS v2.3 Software License.
 
-# 1. Find the proto file
-set(PROTO_FILE "${CMAKE_SOURCE_DIR}/src/proto/torque_ng.proto") 
+set(CMAKE_CXX_STANDARD 20)
 
-# 2. Tell CMake to generate the C++ files from the .proto
-# This creates two variables: PROTO_SRCS (the .cc) and PROTO_HDRS (the .h)
-# Note: These are often generated in the CMAKE_CURRENT_BINARY_DIR
-protobuf_generate_cpp(PROTO_SRCS PROTO_HDRS ${PROTO_FILE}) 
-
-# 3. Define the executable using the generated sources
+# 1. Define the executable WITHOUT generating new .pb files
 add_executable(proto_integration_test 
     test_dispatcher.cpp 
     test_serialization.cpp
-    ${PROTO_SRCS} 
-    ${PROTO_HDRS}
 ) 
 
-# 4. Define shared include paths
-# This ensures the compiler can find both your hand-written headers and generated ones
+# 2. Define shared include paths
+# We point to the central BUILD directory where Libproto puts its headers
 target_include_directories(proto_integration_test PRIVATE 
-    ${CMAKE_CURRENT_BINARY_DIR}          # For generated .pb.h files (torque_ng.pb.h) 
-    ${CMAKE_SOURCE_DIR}/src/proto        # For proto-related headers 
-    ${CMAKE_SOURCE_DIR}/src/utils        # Path to Dispatcher.hpp 
+    ${CMAKE_BINARY_DIR}/src/proto        # The SINGLE source for .pb.h files
+    ${CMAKE_SOURCE_DIR}/src/proto        # For the .proto files themselves
+    ${CMAKE_SOURCE_DIR}/src/include      # For your project-wide headers
+    ${CMAKE_SOURCE_DIR}/src/lib/Libutils # Path to Dispatcher.hpp
 )
 
-# 5. Link everything
+# 3. Link everything to the central Libproto
 target_link_libraries(proto_integration_test 
     PRIVATE 
+    Libproto                             # <--- Use the central target we built
     GTest::gtest_main 
     protobuf::libprotobuf
-    # torque_libutils  <-- Ensure this is built as a library in src/utils/CMakeLists.txt 
+    Threads::Threads
 )
 
-# 6. Register the test with CTest
-add_test(NAME ProtoIntegration COMMAND proto_integration_test) 
+# 4. Register the test with CTest
+add_test(NAME ProtoIntegration COMMAND proto_integration_test)

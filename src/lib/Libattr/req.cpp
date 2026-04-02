@@ -2,8 +2,8 @@
 #include <string.h>
 #include <vector>
 
-#include "req.hpp"
 #include "pbs_error.h"
+#include "req.hpp"
 #include "utils.h"
 
 // define the class constants
@@ -24,7 +24,8 @@ const int ALL_EXECUTION_SLOTS = -1;
 const char *use_cores = "usecores";
 const char *use_threads = "usethreads";
 const char *allow_threads = "allowthreads";
-const char *legacy_threads = "legacythreads"; /* inidicates we have a -l resource request. */
+const char *legacy_threads =
+    "legacythreads"; /* inidicates we have a -l resource request. */
 const char *use_fast_cores = "usefastcores";
 const char *place_node = "node";
 const char *place_socket = "socket";
@@ -34,121 +35,90 @@ const char *place_thread = "thread";
 const char *place_legacy = "legacy";
 const char *place_legacy2 = "legacy2";
 
-req::req() : execution_slots(1), mem(0), swap(0), disk(0), nodes(0),
-             socket(0), numa_nodes(0), cores(0), threads(0), thread_usage_policy(ALLOW_THREADS), 
-             thread_usage_str(allow_threads), gpus(0), mics(0), maxtpn(0), gres(), os(), arch(),
-             node_access_policy(), features(), placement_str(), req_attr(), gpu_mode(),
-             placement_type(exclusive_none), task_count(1), pack(false), single_job_access(false),
-             per_task_cgroup(-1), index(0), hostlist(), task_allocations()
+req::req()
+    : execution_slots(1), mem(0), swap(0), disk(0), nodes(0), socket(0),
+      numa_nodes(0), cores(0), threads(0), thread_usage_policy(ALLOW_THREADS),
+      thread_usage_str(allow_threads), gpus(0), mics(0), maxtpn(0), gres(),
+      os(), arch(), node_access_policy(), features(), placement_str(),
+      req_attr(), gpu_mode(), placement_type(exclusive_none), task_count(1),
+      pack(false), single_job_access(false), per_task_cgroup(-1), index(0),
+      hostlist(), task_allocations()
 
-  {
-  }
-
-
+{}
 
 req::req(
 
-  char *work_str) : execution_slots(1), mem(0), swap(0), disk(0), nodes(0), socket(0),
-                    numa_nodes(0), cores(0), threads(0), thread_usage_policy(ALLOW_THREADS),
-                    thread_usage_str(allow_threads), gpus(0), mics(0), maxtpn(0), gres(),
-                    os(), arch(), node_access_policy(), features(), placement_str(), gpu_mode(),
-                    task_count(1), pack(false), single_job_access(false), per_task_cgroup(-1),
-                    index(0), hostlist(), task_allocations()
-  
-  {
+    char *work_str)
+    : execution_slots(1), mem(0), swap(0), disk(0), nodes(0), socket(0),
+      numa_nodes(0), cores(0), threads(0), thread_usage_policy(ALLOW_THREADS),
+      thread_usage_str(allow_threads), gpus(0), mics(0), maxtpn(0), gres(),
+      os(), arch(), node_access_policy(), features(), placement_str(),
+      gpu_mode(), task_count(1), pack(false), single_job_access(false),
+      per_task_cgroup(-1), index(0), hostlist(), task_allocations()
+
+{
   char *ptr = work_str;
-  int   node_count = strtol(ptr, &ptr, 10);
-  int   ppn_len = strlen(":ppn=");
-  int   mic_len = strlen(":mics=");
-  int   gpu_len = strlen(":gpus=");
-  int   ppn = 1;
-  int   mic = 0;
-  int   gpu = 0;
+  int node_count = strtol(ptr, &ptr, 10);
+  int ppn_len = strlen(":ppn=");
+  int mic_len = strlen(":mics=");
+  int gpu_len = strlen(":gpus=");
+  int ppn = 1;
+  int mic = 0;
+  int gpu = 0;
 
   // Handle a node name
-  if (node_count == 0)
-    {
+  if (node_count == 0) {
     node_count = 1;
     ptr = strchr(ptr, ':');
-    }
+  }
 
-  while ((ptr != NULL) &&
-         (*ptr != '\0'))
-    {
-    if (!strncmp(ptr, ":ppn=", ppn_len))
-      {
+  while ((ptr != NULL) && (*ptr != '\0')) {
+    if (!strncmp(ptr, ":ppn=", ppn_len)) {
       ptr += ppn_len;
       ppn = strtol(ptr, &ptr, 10);
-      }
-    else if (!strncmp(ptr, ":mics=", mic_len))
-      {
+    } else if (!strncmp(ptr, ":mics=", mic_len)) {
       ptr += mic_len;
       mic = strtol(ptr, &ptr, 10);
-      }
-    else if (!strncmp(ptr, ":gpus=", gpu_len))
-      {
+    } else if (!strncmp(ptr, ":gpus=", gpu_len)) {
       ptr += gpu_len;
       gpu = strtol(ptr, &ptr, 10);
-      }
-    else
-      {
+    } else {
       // Feature. Advance to the next ':'
       ptr = strchr(ptr + 1, ':');
-      }
     }
+  }
 
   this->task_count = node_count;
   this->execution_slots = ppn;
   this->gpus = gpu;
   this->set_placement_type(place_legacy);
   this->mics = mic;
-  } // END Constructor from resource list
+} // END Constructor from resource list
 
-
-    
 req::req(
-    
-  const req &other) : execution_slots(other.execution_slots), 
-                      mem(other.mem), 
-                      swap(other.swap),
-                      disk(other.disk), 
-                      nodes(other.nodes), 
-                      socket(other.socket), 
-                      numa_nodes(other.numa_nodes), 
-                      cores(other.cores), 
-                      threads(other.threads), 
-                      thread_usage_policy(other.thread_usage_policy),
-                      thread_usage_str(other.thread_usage_str), 
-                      gpus(other.gpus), 
-                      mics(other.mics), 
-                      maxtpn(other.maxtpn), 
-                      gres(other.gres), 
-                      os(other.os), 
-                      arch(other.arch), 
-                      node_access_policy(other.node_access_policy), 
-                      features(other.features), 
-                      placement_str(other.placement_str),
-                      req_attr(other.req_attr),
-                      gpu_mode(other.gpu_mode),
-                      placement_type(other.placement_type),
-                      task_count(other.task_count),
-                      pack(other.pack), 
-                      single_job_access(other.single_job_access),
-                      per_task_cgroup(other.per_task_cgroup),
-                      index(other.index),
-                      hostlist(other.hostlist),
-                      task_allocations(other.task_allocations)
 
-  {
-  } // END copy constructor()
+    const req &other)
+    : execution_slots(other.execution_slots), mem(other.mem), swap(other.swap),
+      disk(other.disk), nodes(other.nodes), socket(other.socket),
+      numa_nodes(other.numa_nodes), cores(other.cores), threads(other.threads),
+      thread_usage_policy(other.thread_usage_policy),
+      thread_usage_str(other.thread_usage_str), gpus(other.gpus),
+      mics(other.mics), maxtpn(other.maxtpn), gres(other.gres), os(other.os),
+      arch(other.arch), node_access_policy(other.node_access_policy),
+      features(other.features), placement_str(other.placement_str),
+      req_attr(other.req_attr), gpu_mode(other.gpu_mode),
+      placement_type(other.placement_type), task_count(other.task_count),
+      pack(other.pack), single_job_access(other.single_job_access),
+      per_task_cgroup(other.per_task_cgroup), index(other.index),
+      hostlist(other.hostlist), task_allocations(other.task_allocations)
 
-
+{} // END copy constructor()
 
 /*
  * insert_hostname()
  *
  * insert hostlist_name into req. But first check that it is
- * not already in the list 
+ * not already in the list
  *
  * @param hostlist_name - Name to be added to req
  *
@@ -156,18 +126,17 @@ req::req(
 
 void req::insert_hostname(
 
-  const char *hostlist_name)
+    const char *hostlist_name)
 
-  {
+{
   std::vector<std::string>::iterator it;
-  it  = std::find(this->hostlist.begin(), this->hostlist.end(), hostlist_name);
+  it = std::find(this->hostlist.begin(), this->hostlist.end(), hostlist_name);
 
   /* If it is hostlist.end() or this->hostlist.size() is 0 then then entry
      is not in the list. Add it */
   if ((this->hostlist.size() == 0) || (it == this->hostlist.end()))
     this->hostlist.push_back(hostlist_name);
-  }
-
+}
 
 /*
  * parse_positive_integer()
@@ -180,27 +149,25 @@ void req::insert_hostname(
 
 int parse_positive_integer(
 
-  const char *str,
-  int        &parsed)
+    const char *str, int &parsed)
 
-  {
-  if (str == NULL)
-  {
+{
+  if (str == NULL) {
     /* No value passed in. set count to 0) */
     parsed = 0;
-    return(PBSE_NONE);
+    return (PBSE_NONE);
   }
 
   if (strchr(str, '.') != NULL)
-    return(PBSE_BAD_PARAMETER);
+    return (PBSE_BAD_PARAMETER);
 
   parsed = strtol(str, NULL, 10);
 
   if (parsed < 1)
-    return(PBSE_BAD_PARAMETER);
+    return (PBSE_BAD_PARAMETER);
 
-  return(PBSE_NONE);
-  } // END parse_positive_integer()
+  return (PBSE_NONE);
+} // END parse_positive_integer()
 
 /*
  * get_task_host_name
@@ -214,92 +181,72 @@ int parse_positive_integer(
 
 void req::get_task_host_name(
 
-  std::string &task_host,
-  unsigned int task_index)
+    std::string &task_host, unsigned int task_index)
 
-  {
+{
   this->task_allocations[task_index].get_task_host_name(task_host);
-  }
+}
 
 int req::get_req_allocation_count()
 
-  {
-  return(this->task_allocations.size());
-  }
+{
+  return (this->task_allocations.size());
+}
 
-
-int req::set_cput_used(int task_index, const unsigned long cput_used)
-  {
-  if ((this->task_allocations.size() == 0) || (this->task_allocations.size() < task_index))
-    return(PBSE_BAD_PARAMETER);
+int req::set_cput_used(int task_index, const unsigned long cput_used) {
+  if ((this->task_allocations.size() == 0) ||
+      (this->task_allocations.size() < task_index))
+    return (PBSE_BAD_PARAMETER);
 
   this->task_allocations[task_index].set_cput_used(cput_used);
-  return(PBSE_NONE);
-  }
+  return (PBSE_NONE);
+}
 
-
-int req::set_memory_used(int task_index, const unsigned long long mem_used)
-  {
+int req::set_memory_used(int task_index, const unsigned long long mem_used) {
   unsigned int alloc_size = this->task_allocations.size();
 
   if ((alloc_size == 0) || (alloc_size <= task_index))
-    return(PBSE_BAD_PARAMETER);
+    return (PBSE_BAD_PARAMETER);
 
   this->task_allocations[task_index].set_memory_used(mem_used);
-  return(PBSE_NONE);
-  }
+  return (PBSE_NONE);
+}
 
 void req::set_placement_type(
 
-  const std::string &placement_str)
+    const std::string &placement_str)
 
-  {
-  if (placement_str == place_node)
-    {
+{
+  if (placement_str == place_node) {
     this->placement_type = exclusive_node;
     this->placement_str = placement_str;
-    }
-  else if (placement_str == place_socket)
-    {
+  } else if (placement_str == place_socket) {
     this->placement_type = exclusive_socket;
     this->placement_str = placement_str;
-    }
-  else if (placement_str.find(place_numa_node) == 0)
-    {
+  } else if (placement_str.find(place_numa_node) == 0) {
     this->placement_type = exclusive_chip;
     this->placement_str = placement_str;
-    }
-  else if (placement_str.find(place_core) == 0)
-    {
+  } else if (placement_str.find(place_core) == 0) {
     this->placement_type = exclusive_core;
     this->placement_str = placement_str;
-    }
-  else if (placement_str.find(place_thread) == 0)
-    {
+  } else if (placement_str.find(place_thread) == 0) {
     this->placement_type = exclusive_thread;
     this->placement_str = placement_str;
-    }
+  }
   /* It is important to check place_legacy2 before place_legacy
      because the string find method does a substring type of
      find. legacy will match on legacy2 */
-  else if (placement_str.find(place_legacy2) == 0)
-    {
+  else if (placement_str.find(place_legacy2) == 0) {
     this->placement_type = exclusive_legacy2;
     this->placement_str = placement_str;
-    }
-  else if (placement_str.find(place_legacy) == 0)
-    {
+  } else if (placement_str.find(place_legacy) == 0) {
     this->placement_type = exclusive_legacy;
     this->placement_str = placement_str;
-    }
- else
-    {
+  } else {
     this->placement_type = exclusive_none;
     this->placement_str = placement_str;
-    }
-  } // END set_placement_type()
-
-
+  }
+} // END set_placement_type()
 
 /*
  * set_place_value()
@@ -315,72 +262,59 @@ void req::set_placement_type(
 
 int req::set_place_value(
 
-  const char *value)
+    const char *value)
 
-  {
+{
   char *work_str = strdup(value);
   char *equals = strchr(work_str, '=');
   char *numeric_value = NULL;
-  int   rc = PBSE_NONE;
+  int rc = PBSE_NONE;
 
   this->placement_str = value;
 
-  if (equals != NULL)
-    {
+  if (equals != NULL) {
     *equals = '\0';
     numeric_value = equals + 1;
-    }
+  }
 
-  if (!strcmp(work_str, place_node))
-    {
+  if (!strcmp(work_str, place_node)) {
     if (numeric_value != NULL)
       rc = parse_positive_integer(numeric_value, this->nodes);
     else
       this->nodes = 1;
-    }
-  else if (!strcmp(work_str, place_socket))
-    {
+  } else if (!strcmp(work_str, place_socket)) {
     if (numeric_value != NULL)
       rc = parse_positive_integer(numeric_value, this->socket);
     else
       this->socket = 1;
-    }
-  else if (!strcmp(work_str, place_numa_node))
-    {
+  } else if (!strcmp(work_str, place_numa_node)) {
     if (numeric_value != NULL)
       rc = parse_positive_integer(numeric_value, this->numa_nodes);
     else
       this->numa_nodes = 1;
-    }
-  else if (!strcmp(work_str, place_core))
-    {
+  } else if (!strcmp(work_str, place_core)) {
     if (numeric_value != NULL)
       rc = parse_positive_integer(numeric_value, this->cores);
     else
       this->cores = 1;
- 
+
     this->thread_usage_policy = USE_CORES;
     this->thread_usage_str = use_cores;
-    }
-  else if (!strcmp(work_str, place_thread))
-    {
+  } else if (!strcmp(work_str, place_thread)) {
     if (numeric_value != NULL)
       rc = parse_positive_integer(numeric_value, this->threads);
     else
       this->threads = 1;
-      
+
     this->thread_usage_policy = USE_THREADS;
     this->thread_usage_str = use_threads;
-    }
-  else
+  } else
     rc = PBSE_BAD_PARAMETER;
 
   free(work_str);
 
-  return(rc);
-  } // END set_place_value() 
-
-
+  return (rc);
+} // END set_place_value()
 
 /*
  * read_mem_value()
@@ -391,128 +325,112 @@ int req::set_place_value(
 
 int read_mem_value(
 
-  const char    *value,
-  unsigned long &parsed)
+    const char *value, unsigned long &parsed)
 
-  {
-  char      *suffix;
-  long long  memval = strtoll((char *)value, &suffix, 10);
+{
+  char *suffix;
+  long long memval = strtoll((char *)value, &suffix, 10);
 
   if (memval < 1)
-    return(PBSE_BAD_PARAMETER);
-  
-  switch (*suffix)
-    {
-      /* We will multiply by 1024 later as well. Default 
-         multiplier for memory is kilobytes. */
-    case 't':
-    case 'T':
+    return (PBSE_BAD_PARAMETER);
 
-      memval *= 1024 * 1024 * 1024;
+  switch (*suffix) {
+    /* We will multiply by 1024 later as well. Default
+       multiplier for memory is kilobytes. */
+  case 't':
+  case 'T':
 
-      break;
+    memval *= 1024 * 1024 * 1024;
 
-    case 'g':
-    case 'G':
+    break;
 
-      memval *= 1024 * 1024;
+  case 'g':
+  case 'G':
 
-      break;
+    memval *= 1024 * 1024;
 
-    case 'm':
-    case 'M':
+    break;
 
-      memval *= 1024;
+  case 'm':
+  case 'M':
 
-      break;
-    }
+    memval *= 1024;
+
+    break;
+  }
 
   parsed = memval;
 
-  return(PBSE_NONE);
-  } // END read_mem_value()
-
-
+  return (PBSE_NONE);
+} // END read_mem_value()
 
 int req::append_gres(
 
-  const char *gres_value)
+    const char *gres_value)
 
-  {
+{
   char *work_str = strdup(gres_value);
   char *gres_name = work_str;
   char *equals = strchr(gres_name, '=');
-  int   value = 0;
+  int value = 0;
 
-  if (equals != NULL)
-    {
+  if (equals != NULL) {
     *equals = '\0';
     value = strtol(equals + 1, NULL, 10);
 
-    if (value < 1)
-      {
+    if (value < 1) {
       free(work_str);
-      return(-1);
-      }
+      return (-1);
     }
+  }
 
-  char       *current_gres = strdup(this->gres.c_str());
-  char       *current = current_gres;
-  char       *ptr;
+  char *current_gres = strdup(this->gres.c_str());
+  char *current = current_gres;
+  char *ptr;
   const char *delim = ":";
-  char        buf[MAXLINE];
-  bool        found = false;
+  char buf[MAXLINE];
+  bool found = false;
 
   this->gres.clear();
 
-  while ((ptr = threadsafe_tokenizer(&current, delim)) != NULL)
-    {
+  while ((ptr = threadsafe_tokenizer(&current, delim)) != NULL) {
     if (this->gres.size() > 0)
       this->gres += ":";
 
     int len = strlen(gres_name);
 
-    if (!strncmp(ptr, gres_name, len))
-      {
-      if ((ptr[len] == '\0') ||
-          (ptr[len] == '='))
-        {
+    if (!strncmp(ptr, gres_name, len)) {
+      if ((ptr[len] == '\0') || (ptr[len] == '=')) {
         this->gres += gres_name;
 
-        if (value != 0)
-          {
+        if (value != 0) {
           sprintf(buf, "=%d", value);
           this->gres += buf;
-          }
+        }
 
         found = true;
-        }
-      else
+      } else
         this->gres += ptr;
-      }
-    else
+    } else
       this->gres += ptr;
-    }
+  }
 
-  if (found == false)
-    {
+  if (found == false) {
     this->gres += ":";
     this->gres += gres_value;
-    }
+  }
 
   free(work_str);
   free(current_gres);
-  
-  return(PBSE_NONE);
-  } // END append_gres()
 
-
+  return (PBSE_NONE);
+} // END append_gres()
 
 /*
  * set_name_value_pair()
  *
  * Sets lprocs, memory, gpus, mics, place, maxtpn (ignored), gres,
- * features, disk, opsys, mode, or reqattr for this req. 
+ * features, disk, opsys, mode, or reqattr for this req.
  *
  * @param name - the name of the value we're setting
  * @param value - the string to parse for the value
@@ -522,36 +440,31 @@ int req::append_gres(
 
 int req::set_name_value_pair(
 
-  const char *name,
-  const char *value)
+    const char *name, const char *value)
 
-  {
+{
   int rc = PBSE_NONE;
-  if (!strcmp(name, "lprocs"))
-    {
+  if (!strcmp(name, "lprocs")) {
     if (value[0] == 'a')
       this->execution_slots = ALL_EXECUTION_SLOTS;
     else
       rc = parse_positive_integer(value, this->execution_slots);
-    }
-  else if (!strcmp(name, "memory"))
+  } else if (!strcmp(name, "memory"))
     rc = read_mem_value(value, this->mem);
   else if (!strcmp(name, "gpus"))
     rc = parse_positive_integer(value, this->gpus);
   else if (!strcmp(name, "mics"))
     rc = parse_positive_integer(value, this->mics);
   else if (!strcmp(name, "place"))
-    return(set_place_value(value));
+    return (set_place_value(value));
   else if (!strcmp(name, "maxtpn"))
     rc = parse_positive_integer(value, this->maxtpn);
-  else if (!strcmp(name, "gres"))
-    {
+  else if (!strcmp(name, "gres")) {
     if (this->gres.size() > 0)
       append_gres(value);
     else
       this->gres = value;
-    }
-  else if (!strcmp(name, "feature"))
+  } else if (!strcmp(name, "feature"))
     this->features = value;
   else if (!strcmp(name, "disk"))
     rc = read_mem_value(value, this->disk);
@@ -562,19 +475,17 @@ int req::set_name_value_pair(
   else if (!strcmp(name, "swap"))
     rc = read_mem_value(value, this->swap);
   else
-    return(PBSE_BAD_PARAMETER);
+    return (PBSE_BAD_PARAMETER);
 
-  return(rc);
-  } // END set_name_value_pair() 
-
-
+  return (rc);
+} // END set_name_value_pair()
 
 /*
  * set_attribute()
  *
  * Sets an attribute that doesn't require a value. It has to be
  * in this format:
- * 
+ *
  * [:{usecores|usethreads|allowthreads|usefastcores}][:pack][:{cpt|cgroup_per_task}]
  * [:{cph|cgroup_per_host}]
  * [:{shared|exclusive_thread|prohibited|exclusive_process|exclusive|default|reseterr}]
@@ -584,69 +495,47 @@ int req::set_name_value_pair(
  */
 int req::set_attribute(
 
-  const char *str)
+    const char *str)
 
-  {
-  if (!strcmp(str, use_cores))
-    {
+{
+  if (!strcmp(str, use_cores)) {
     this->thread_usage_policy = USE_CORES;
     this->thread_usage_str = str;
-    }
-  else if (!strcmp(str, use_threads))
-    {
+  } else if (!strcmp(str, use_threads)) {
     this->thread_usage_policy = USE_THREADS;
     this->thread_usage_str = str;
-    }
-  else if (!strcmp(str, allow_threads))
-    {
+  } else if (!strcmp(str, allow_threads)) {
     this->thread_usage_policy = ALLOW_THREADS;
     this->thread_usage_str = str;
-    }
-  else if (!strcmp(str, use_fast_cores))
-    {
+  } else if (!strcmp(str, use_fast_cores)) {
     this->thread_usage_policy = USE_FAST_CORES;
     this->thread_usage_str = str;
-    }
-  else if (!strcmp(str, "pack"))
-    {
+  } else if (!strcmp(str, "pack")) {
     this->pack = true;
-    }
-  else if ((!strcasecmp(str, "shared")) ||
-           (!strcasecmp(str, "exclusive_thread")) ||
-           (!strcasecmp(str, "prohibited")) ||
-           (!strcasecmp(str, "exclusive_process")) ||
-           (!strcasecmp(str, "exclusive")) ||
-           (!strcasecmp(str, "default")) ||
-           (!strcasecmp(str, "reseterr")))
-    {
-    if (this->gpu_mode.size() > 0)
-      {
-      if (this->gpu_mode.find(str) == std::string::npos)
-        {
+  } else if ((!strcasecmp(str, "shared")) ||
+             (!strcasecmp(str, "exclusive_thread")) ||
+             (!strcasecmp(str, "prohibited")) ||
+             (!strcasecmp(str, "exclusive_process")) ||
+             (!strcasecmp(str, "exclusive")) || (!strcasecmp(str, "default")) ||
+             (!strcasecmp(str, "reseterr"))) {
+    if (this->gpu_mode.size() > 0) {
+      if (this->gpu_mode.find(str) == std::string::npos) {
         this->gpu_mode += ":";
         this->gpu_mode += str;
-        }
       }
-    else
+    } else
       this->gpu_mode = str;
-    }
-  else if ((!strcasecmp(str, "cpt")) ||
-           (!strcasecmp(str, "cgroup_per_task")))
-    {
+  } else if ((!strcasecmp(str, "cpt")) ||
+             (!strcasecmp(str, "cgroup_per_task"))) {
     this->per_task_cgroup = true;
-    }
-  else if ((!strcasecmp(str, "cph")) ||
-           (!strcasecmp(str, "cgroup_per_host")))
-    {
+  } else if ((!strcasecmp(str, "cph")) ||
+             (!strcasecmp(str, "cgroup_per_host"))) {
     this->per_task_cgroup = false;
-    }
-  else
-    return(PBSE_BAD_PARAMETER);
+  } else
+    return (PBSE_BAD_PARAMETER);
 
-  return(PBSE_NONE);
-  } // END set_attribute()
-
-
+  return (PBSE_NONE);
+} // END set_attribute()
 
 /*
  * set_value_from_string()
@@ -662,25 +551,21 @@ int req::set_attribute(
 
 int req::set_value_from_string(
 
-  char *str)
+    char *str)
 
-  {
+{
   char *equals = strchr(str, '=');
   char *value = NULL;
 
-  if (equals != NULL)
-    {
+  if (equals != NULL) {
     *equals = '\0';
     value = equals + 1;
 
-    return(set_name_value_pair(str, value));
-    }
-  else
-    return(set_attribute(str));
+    return (set_name_value_pair(str, value));
+  } else
+    return (set_attribute(str));
 
-  } // END set_value_from_string()
-
-
+} // END set_value_from_string()
 
 /*
  * check_for_parameter()
@@ -696,42 +581,33 @@ int req::set_value_from_string(
 
 char *check_for_parameter(
 
-  char       *str,
-  const char *param,
-  int         len)
+    char *str, const char *param, int len)
 
-  {
+{
   char *begin = strstr(str, param);
-  bool  found = false;
+  bool found = false;
 
-  if (begin != NULL)
-    {
-    if ((begin == str) ||
-        (*(begin - 1) == ':') ||
-        (*(begin - 1) == '='))
-      {
+  if (begin != NULL) {
+    if ((begin == str) || (*(begin - 1) == ':') || (*(begin - 1) == '=')) {
       char *end = begin + len;
 
-      switch (*end)
-        {
-        case '=':
-        case ':':
-        case '\0':
+      switch (*end) {
+      case '=':
+      case ':':
+      case '\0':
 
-          found = true;
+        found = true;
 
-          break;
-        }
+        break;
       }
     }
+  }
 
   if (found == false)
-    return(NULL);
+    return (NULL);
   else
-    return(begin);
-  } // END check_for_parameter()
-
-
+    return (begin);
+} // END check_for_parameter()
 
 /*
  * are_conflicting_params_present()
@@ -741,33 +617,30 @@ char *check_for_parameter(
  * detected
  *
  * @param str - the c string to check against
- * @param conflicting_params - a list of values that cannot co-exit or be duplicated
- * @param error - the string to populate with more detailed information about the error 
- * if an error exists
- * @return - true if anything in conflicting_params is duplicated or if multiple values
- * from conflicting_params are present
+ * @param conflicting_params - a list of values that cannot co-exit or be
+ * duplicated
+ * @param error - the string to populate with more detailed information about
+ * the error if an error exists
+ * @return - true if anything in conflicting_params is duplicated or if multiple
+ * values from conflicting_params are present
  */
 
 bool are_conflicting_params_present(
 
-  char                     *str,
-  std::vector<std::string> &conflicting_params,
-  std::string              &error)
+    char *str, std::vector<std::string> &conflicting_params, std::string &error)
 
-  {
+{
   std::string first_found;
 
-  for (unsigned int i = 0; i < conflicting_params.size(); i++)
-    {
+  for (unsigned int i = 0; i < conflicting_params.size(); i++) {
     char *found = check_for_parameter(str, conflicting_params[i].c_str(),
                                       conflicting_params[i].size());
 
-    if (found != NULL)
-      {
-      // Two of the conflicting values were found 
-      if (first_found.size() != 0)
-        {
-        // reseterr may be used in conjunction with exclusive_process and exclusive_thread
+    if (found != NULL) {
+      // Two of the conflicting values were found
+      if (first_found.size() != 0) {
+        // reseterr may be used in conjunction with exclusive_process and
+        // exclusive_thread
         if ((conflicting_params[i] == "reseterr") &&
             ((first_found == "exclusive_process") ||
              (first_found == "exclusive_thread")))
@@ -778,64 +651,54 @@ bool are_conflicting_params_present(
         error += " should not be specified with the parameter ";
         error += conflicting_params[i];
         error += ".";
-        return(true);
-        }
-      else
-        {
+        return (true);
+      } else {
         // record the first value found in conflicting values
         first_found = conflicting_params[i];
 
         if (check_for_parameter(found + first_found.size(),
                                 conflicting_params[i].c_str(),
-                                conflicting_params[i].size()) != NULL)
-          {
+                                conflicting_params[i].size()) != NULL) {
           // The value was repeated
           error = "The parameter ";
           error += first_found;
           error += " should not be duplicated.";
-          return(true);
-          }
+          return (true);
         }
       }
     }
-  
-  return(false);
-  } // END are_conflicting_params_present()
+  }
 
-
+  return (false);
+} // END are_conflicting_params_present()
 
 /*
  * is_present_twice()
  *
- * Checks str to see if check_for_me is in there twice and 
+ * Checks str to see if check_for_me is in there twice and
  * returns true if the string is duplicated
  */
 
 bool is_present_twice(
 
-  char              *str,
-  const std::string &check_for_me,
-  std::string       &error)
+    char *str, const std::string &check_for_me, std::string &error)
 
-  {
+{
   const char *check = check_for_me.c_str();
-  char       *found = check_for_parameter(str, check, check_for_me.size());
+  char *found = check_for_parameter(str, check, check_for_me.size());
 
-  if (found != NULL)
-    {
-    if (check_for_parameter(found + check_for_me.size(), check, check_for_me.size()) != NULL)
-      {
+  if (found != NULL) {
+    if (check_for_parameter(found + check_for_me.size(), check,
+                            check_for_me.size()) != NULL) {
       error = "The parameter ";
       error += found;
       error += " should not be duplicated.";
-      return(true);
-      }
+      return (true);
     }
+  }
 
-  return(false);
-  } // END is_present_twice
-
-
+  return (false);
+} // END is_present_twice
 
 /*
  * submission_string_has_duplicates()
@@ -853,10 +716,9 @@ bool is_present_twice(
 
 bool req::submission_string_has_duplicates(
 
-  char        *str,
-  std::string &error)
+    char *str, std::string &error)
 
-  {
+{
   if ((is_present_twice(str, "lprocs", error)) ||
       (is_present_twice(str, "memory", error)) ||
       (is_present_twice(str, "swap", error)) ||
@@ -868,25 +730,22 @@ bool req::submission_string_has_duplicates(
       (is_present_twice(str, "mics", error)) ||
       (is_present_twice(str, "gres", error)) ||
       (is_present_twice(str, "feature", error)) ||
-      (is_present_twice(str, "opsys", error)))
-    {
-    return(true);
-    }
+      (is_present_twice(str, "opsys", error))) {
+    return (true);
+  }
 
   static std::vector<std::string> thread_use_values;
   static std::vector<std::string> gpu_mode_values;
   static std::vector<std::string> place_and_threads;
 
-  if (thread_use_values.size() == 0)
-    {
+  if (thread_use_values.size() == 0) {
     thread_use_values.push_back(use_cores);
     thread_use_values.push_back(use_threads);
     thread_use_values.push_back(allow_threads);
     thread_use_values.push_back(use_fast_cores);
-    }
+  }
 
-  if (gpu_mode_values.size() == 0)
-    {
+  if (gpu_mode_values.size() == 0) {
     gpu_mode_values.push_back("shared");
     gpu_mode_values.push_back("exclusive_thread");
     gpu_mode_values.push_back("prohibited");
@@ -894,28 +753,24 @@ bool req::submission_string_has_duplicates(
     gpu_mode_values.push_back("exclusive");
     gpu_mode_values.push_back("default");
     gpu_mode_values.push_back("reseterr");
-    }
+  }
 
-  if (place_and_threads.size() == 0)
-    {
+  if (place_and_threads.size() == 0) {
     place_and_threads.push_back(place_numa_node);
     place_and_threads.push_back(place_socket);
     place_and_threads.push_back(place_node);
     place_and_threads.push_back(use_threads);
     place_and_threads.push_back(use_fast_cores);
-    }
+  }
 
   if ((are_conflicting_params_present(str, thread_use_values, error)) ||
       (are_conflicting_params_present(str, gpu_mode_values, error)) ||
-      (are_conflicting_params_present(str, place_and_threads, error)))
-    {
-    return(true);
-    }
-  
-  return(false);
-  } // END submission_string_has_duplicates()
+      (are_conflicting_params_present(str, place_and_threads, error))) {
+    return (true);
+  }
 
-
+  return (false);
+} // END submission_string_has_duplicates()
 
 /*
  * has_conflicting_values()
@@ -927,78 +782,61 @@ bool req::submission_string_has_duplicates(
 
 bool req::has_conflicting_values(
 
-  std::string &error)
+    std::string &error)
 
-  {
+{
   bool bad_syntax = false;
 
-  if (this->execution_slots == ALL_EXECUTION_SLOTS)
-    {
-    if (strncmp(this->placement_str.c_str(), "node", 4))
-      {
+  if (this->execution_slots == ALL_EXECUTION_SLOTS) {
+    if (strncmp(this->placement_str.c_str(), "node", 4)) {
       error = "-lprocs=all may only be used in conjunction with place=node";
       bad_syntax = true;
-      }
     }
-  else
-    {
-    if ((this->execution_slots > this->cores))
-      {
-      if (this->cores > 1)
-        {
+  } else {
+    if ((this->execution_slots > this->cores)) {
+      if (this->cores > 1) {
         error = "place=core=x must be >= lprocs";
         bad_syntax = true;
-        }
-      else if (this->cores == 1)
-        {
+      } else if (this->cores == 1) {
         /* A core value of one is a default or even if set by the user
-           will be considered the default. lprocs was greater than 1 so 
+           will be considered the default. lprocs was greater than 1 so
            we will set cores equal to lprocs */
         this->cores = this->execution_slots;
-        }
-      }
-
-    if ((this->execution_slots > this->threads))
-      {
-      if (this->threads > 1)
-        {
-        error = "place=thread=x must be >= lprocs";
-        bad_syntax = true;
-        }
-      else if (this->threads == 1)
-        {
-         /* A thread value of one is a default or even if set by the user
-           will be considered the default. lprocs was greater than 1 so 
-           we will set thread equal to lprocs */
-        this->threads = this->execution_slots;
-        }
       }
     }
 
-  return(bad_syntax);
-  } // END has_conflicting_values()
+    if ((this->execution_slots > this->threads)) {
+      if (this->threads > 1) {
+        error = "place=thread=x must be >= lprocs";
+        bad_syntax = true;
+      } else if (this->threads == 1) {
+        /* A thread value of one is a default or even if set by the user
+          will be considered the default. lprocs was greater than 1 so
+          we will set thread equal to lprocs */
+        this->threads = this->execution_slots;
+      }
+    }
+  }
 
-
+  return (bad_syntax);
+} // END has_conflicting_values()
 
 int req::submission_string_precheck(
 
-  char        *submission_str,
-  std::string &error)
+    char *submission_str, std::string &error)
 
-  {
-  if (strchr(submission_str, '+') != NULL)
-    {
-    error = "Multi-req syntax should use multiple -L parameters and not the '+' delimiter.";
-    return(PBSE_BAD_PARAMETER);
-    }
+{
+  if (strchr(submission_str, '+') != NULL) {
+    error = "Multi-req syntax should use multiple -L parameters and not the "
+            "'+' delimiter.";
+    return (PBSE_BAD_PARAMETER);
+  }
 
   if (submission_string_has_duplicates(submission_str, error))
-    return(PBSE_BAD_PARAMETER);
+    return (PBSE_BAD_PARAMETER);
 
-  return(PBSE_NONE);
-  } // END submission_string_precheck() 
-    
-
+  return (PBSE_NONE);
+} // END submission_string_precheck()
 
 /*
  * set_from_submission_string()
@@ -1018,48 +856,41 @@ int req::submission_string_precheck(
  */
 
 int req::set_from_submission_string(
-    
-  char        *submission_str,
-  std::string &error)
 
-  {
-  char       *current;
-  int         rc;
+    char *submission_str, std::string &error)
+
+{
+  char *current;
+  int rc;
 
   if (submission_string_precheck(submission_str, error))
-    return(PBSE_BAD_PARAMETER);
+    return (PBSE_BAD_PARAMETER);
 
   this->task_count = strtol(submission_str, &current, 10);
 
-  if ((this->task_count < 1) ||
-      (current == submission_str))
-    {
+  if ((this->task_count < 1) || (current == submission_str)) {
     error = "Bad tasks value: '";
     error += submission_str;
     error += "'";
-    return(PBSE_BAD_PARAMETER);
-    }
+    return (PBSE_BAD_PARAMETER);
+  }
 
   if (*current == ':')
     current++;
-  else if (current != '\0')
-    {
+  else if (current != '\0') {
     error = "Invalid task specification";
-    return(PBSE_BAD_PARAMETER);
-    }
+    return (PBSE_BAD_PARAMETER);
+  }
 
-  while ((current != NULL) && 
-         (*current != '\0'))
-    {
+  while ((current != NULL) && (*current != '\0')) {
     char *ptr = strchr(current, ':');
 
     if (ptr != NULL)
       *ptr = '\0';
 
     // set the current value
-    if ((rc = set_value_from_string(current)) != PBSE_NONE)
-      {
-      char  buf[MAXLINE];
+    if ((rc = set_value_from_string(current)) != PBSE_NONE) {
+      char buf[MAXLINE];
       char *err_txt = pbse_to_txt(rc);
 
       error = "value '";
@@ -1074,25 +905,22 @@ int req::set_from_submission_string(
       error += buf;
 
       break;
-      }
+    }
 
     // advance the position
     if (ptr == NULL)
       current = ptr;
     else
       current = ++ptr;
-    }
+  }
 
-  if (rc == PBSE_NONE)
-    {
+  if (rc == PBSE_NONE) {
     if (has_conflicting_values(error) == true)
-      return(PBSE_BAD_PARAMETER);
-    }
+      return (PBSE_BAD_PARAMETER);
+  }
 
-  return(rc);
-  } // END set_from_submission_string() 
-
-
+  return (rc);
+} // END set_from_submission_string()
 
 /*
  * Constructor that accepts a string
@@ -1106,43 +934,40 @@ int req::set_from_submission_string(
  * We will get only the part after tasks=
  *
  * Sets the default values in the constructor before parsing so that values
- * which aren't requested are 
+ * which aren't requested are
  */
 
 req::req(
 
-   const std::string &resource_request) : execution_slots(1), mem(0), swap(0), disk(0),
-                                         nodes(0), socket(0), numa_nodes(0),
-                                         cores(0), threads(0), thread_usage_policy(ALLOW_THREADS),
-                                         thread_usage_str(allow_threads), gpus(0), mics(0),
-                                         maxtpn(0), gres(), os(), arch(), node_access_policy(),
-                                         features(), placement_str(), req_attr(), gpu_mode(), 
-                                         task_count(1), pack(false), single_job_access(false),
-                                         per_task_cgroup(-1), index(-1), hostlist(),
-                                         task_allocations()
+    const std::string &resource_request)
+    : execution_slots(1), mem(0), swap(0), disk(0), nodes(0), socket(0),
+      numa_nodes(0), cores(0), threads(0), thread_usage_policy(ALLOW_THREADS),
+      thread_usage_str(allow_threads), gpus(0), mics(0), maxtpn(0), gres(),
+      os(), arch(), node_access_policy(), features(), placement_str(),
+      req_attr(), gpu_mode(), task_count(1), pack(false),
+      single_job_access(false), per_task_cgroup(-1), index(-1), hostlist(),
+      task_allocations()
 
-  {
-  char       *work_str = strdup(resource_request.c_str());
+{
+  char *work_str = strdup(resource_request.c_str());
   std::string error;
 
   set_from_submission_string(work_str, error);
 
   free(work_str);
-  }
-
-
+}
 
 /*
  * equals operator
  */
 
-req &req::operator =(
-    
-  const req &other)
+req &req::operator=(
 
-  {
+    const req &other)
+
+{
   if (this == &other)
-    return(*this);
+    return (*this);
 
   this->execution_slots = other.execution_slots;
   this->mem = other.mem;
@@ -1175,10 +1000,8 @@ req &req::operator =(
   this->hostlist = other.hostlist;
   this->task_allocations = other.task_allocations;
 
-  return(*this);
-  } // END operator =()
-
-
+  return (*this);
+} // END operator =()
 
 /*
  * toString()
@@ -1188,10 +1011,10 @@ req &req::operator =(
  */
 
 void req::toString(
-    
-  std::string &str) const
 
-  {
+    std::string &str) const
+
+{
   char buf[100];
 
   snprintf(buf, sizeof(buf), "    req[%d]\n", this->index);
@@ -1200,145 +1023,123 @@ void req::toString(
   snprintf(buf, sizeof(buf), "      task count: %d\n", this->task_count);
   str += buf;
 
-  if (this->execution_slots != 0)
-    {
+  if (this->execution_slots != 0) {
     if (this->execution_slots == ALL_EXECUTION_SLOTS)
       str += "      lprocs: all\n";
-    else
-      {
+    else {
       snprintf(buf, sizeof(buf), "      lprocs: %d\n", this->execution_slots);
       str += buf;
-      }
     }
+  }
 
-  if (this->mem != 0)
-    {
+  if (this->mem != 0) {
     snprintf(buf, sizeof(buf), "      mem: %lukb\n", this->mem);
     str += buf;
-    }
+  }
 
-  if (this->swap != 0)
-    {
+  if (this->swap != 0) {
     snprintf(buf, sizeof(buf), "      swap: %lukb\n", this->swap);
     str += buf;
-    }
+  }
 
-  if (this->disk != 0)
-    {
+  if (this->disk != 0) {
     snprintf(buf, sizeof(buf), "      disk: %lukb\n", this->disk);
     str += buf;
-    }
+  }
 
-  if (this->nodes != 0)
-    {
+  if (this->nodes != 0) {
     snprintf(buf, sizeof(buf), "      node: %d\n", this->nodes);
     str += buf;
-    }
+  }
 
-  if (this->socket != 0)
-    {
+  if (this->socket != 0) {
     snprintf(buf, sizeof(buf), "      socket: %d\n", this->socket);
     str += buf;
-    }
+  }
 
-  if (this->numa_nodes != 0)
-    {
+  if (this->numa_nodes != 0) {
     snprintf(buf, sizeof(buf), "      numanode: %d\n", this->numa_nodes);
     str += buf;
-    }
+  }
 
-  if (this->cores != 0)
-    {
+  if (this->cores != 0) {
     snprintf(buf, sizeof(buf), "      core: %d\n", this->cores);
     str += buf;
-    }
+  }
 
-  if (this->threads != 0)
-    {
+  if (this->threads != 0) {
     snprintf(buf, sizeof(buf), "      thread: %d\n", this->threads);
     str += buf;
-    }
+  }
 
-  if (this->gpus != 0)
-    {
+  if (this->gpus != 0) {
     snprintf(buf, sizeof(buf), "      gpus: %d\n", this->gpus);
     str += buf;
 
-    if (this->gpu_mode.size() != 0)
-      {
+    if (this->gpu_mode.size() != 0) {
       str += "      gpu mode: ";
       str += this->gpu_mode;
       str += '\n';
-      }
     }
+  }
 
-  if (this->mics != 0)
-    {
+  if (this->mics != 0) {
     snprintf(buf, sizeof(buf), "      mics: %d\n", this->mics);
     str += buf;
-    }
+  }
 
-  if (this->maxtpn != 0)
-    {
+  if (this->maxtpn != 0) {
     snprintf(buf, sizeof(buf), "      max tpn: %d\n", this->maxtpn);
     str += buf;
-    }
+  }
 
   str += "      thread usage policy: ";
   str += this->thread_usage_str;
   str += '\n';
 
-  if (this->placement_str.size() != 0)
-    {
+  if (this->placement_str.size() != 0) {
     str += "      placement type: ";
     str += this->placement_str;
     str += '\n';
-    }
+  }
 
-  if (this->req_attr.size() != 0)
-    {
+  if (this->req_attr.size() != 0) {
     str += "      reqattr: ";
     str += this->req_attr;
     str += '\n';
-    }
+  }
 
-  if (this->gres.size() != 0)
-    {
+  if (this->gres.size() != 0) {
     str += "      gres: ";
     str += this->gres;
     str += '\n';
-    }
+  }
 
-  if (this->os.size() != 0)
-    {
+  if (this->os.size() != 0) {
     str += "      os: ";
     str += this->os;
     str += '\n';
-    }
+  }
 
-  if (this->arch.size() != 0)
-    {
+  if (this->arch.size() != 0) {
     str += "      arch: ";
     str += this->arch;
     str += '\n';
-    }
+  }
 
-  if (this->hostlist.size() != 0)
-    {
-    for (unsigned int i = 0; i < this->hostlist.size(); i++)
-      {
+  if (this->hostlist.size() != 0) {
+    for (unsigned int i = 0; i < this->hostlist.size(); i++) {
       str += "      hostlist: ";
       str += this->hostlist[i];
       str += '\n';
-      }
     }
+  }
 
-  if (this->features.size() != 0)
-    {
+  if (this->features.size() != 0) {
     str += "      features: ";
     str += this->features;
     str += '\n';
-    }
+  }
 
   if (this->single_job_access == true)
     str += "      single job access\n";
@@ -1351,9 +1152,7 @@ void req::toString(
 
   if (this->per_task_cgroup == FALSE)
     str += "      cph\n";
-  } // END toString() 
-
-
+} // END toString()
 
 /*
  * get_values()
@@ -1370,220 +1169,190 @@ void req::toString(
  */
 
 void req::get_values(
-    
-  std::vector<std::string> &names,
-  std::vector<std::string> &values) const
 
-  {
+    std::vector<std::string> &names, std::vector<std::string> &values) const
+
+{
   char buf[100];
 
   snprintf(buf, sizeof(buf), "task_count.%d", this->index);
   names.push_back(buf);
   snprintf(buf, sizeof(buf), "%d", this->task_count);
   values.push_back(buf);
-  
-  if (this->execution_slots != 0)
-    {
+
+  if (this->execution_slots != 0) {
     snprintf(buf, sizeof(buf), "lprocs.%d", this->index);
     names.push_back(buf);
     if (this->execution_slots == ALL_EXECUTION_SLOTS)
       values.push_back("all");
-    else
-      {
+    else {
       snprintf(buf, sizeof(buf), "%d", this->execution_slots);
       values.push_back(buf);
-      }
     }
+  }
 
-  if (this->mem != 0)
-    {
+  if (this->mem != 0) {
     snprintf(buf, sizeof(buf), "memory.%d", this->index);
     names.push_back(buf);
     snprintf(buf, sizeof(buf), "%lukb", this->mem);
     values.push_back(buf);
-    }
+  }
 
-  if (this->swap != 0)
-    {
+  if (this->swap != 0) {
     snprintf(buf, sizeof(buf), "swap.%d", this->index);
     names.push_back(buf);
     snprintf(buf, sizeof(buf), "%lukb", this->swap);
     values.push_back(buf);
-    }
+  }
 
-  if (this->disk != 0)
-    {
+  if (this->disk != 0) {
     snprintf(buf, sizeof(buf), "disk.%d", this->index);
     names.push_back(buf);
     snprintf(buf, sizeof(buf), "%lukb", this->disk);
     values.push_back(buf);
-    }
+  }
 
-  if (this->nodes != 0)
-    {
+  if (this->nodes != 0) {
     snprintf(buf, sizeof(buf), "node.%d", this->index);
     names.push_back(buf);
     snprintf(buf, sizeof(buf), "%d", this->nodes);
     values.push_back(buf);
-    }
+  }
 
-  if (this->socket != 0)
-    {
+  if (this->socket != 0) {
     snprintf(buf, sizeof(buf), "socket.%d", this->index);
     names.push_back(buf);
     snprintf(buf, sizeof(buf), "%d", this->socket);
     values.push_back(buf);
-    }
+  }
 
-  if (this->numa_nodes != 0)
-    {
+  if (this->numa_nodes != 0) {
     snprintf(buf, sizeof(buf), "numanode.%d", this->index);
     names.push_back(buf);
     snprintf(buf, sizeof(buf), "%d", this->numa_nodes);
     values.push_back(buf);
-    }
+  }
 
-  if (this->cores != 0)
-    {
+  if (this->cores != 0) {
     snprintf(buf, sizeof(buf), "core.%d", this->index);
     names.push_back(buf);
     snprintf(buf, sizeof(buf), "%d", this->cores);
     values.push_back(buf);
-    }
+  }
 
-  if (this->threads != 0)
-    {
+  if (this->threads != 0) {
     snprintf(buf, sizeof(buf), "thread.%d", this->index);
     names.push_back(buf);
     snprintf(buf, sizeof(buf), "%d", this->threads);
     values.push_back(buf);
-    }
+  }
 
-  if (this->gpus != 0)
-    {
+  if (this->gpus != 0) {
     snprintf(buf, sizeof(buf), "gpus.%d", this->index);
     names.push_back(buf);
     snprintf(buf, sizeof(buf), "%d", this->gpus);
     values.push_back(buf);
 
-    if (this->gpu_mode.size() != 0)
-      {
+    if (this->gpu_mode.size() != 0) {
       snprintf(buf, sizeof(buf), "gpu_mode.%d", this->index);
       names.push_back(buf);
       values.push_back(this->gpu_mode);
-      }
     }
+  }
 
-  if (this->mics != 0)
-    {
+  if (this->mics != 0) {
     snprintf(buf, sizeof(buf), "mics.%d", this->index);
     names.push_back(buf);
     snprintf(buf, sizeof(buf), "%d", this->mics);
     values.push_back(buf);
-    }
+  }
 
-  if (this->maxtpn != 0)
-    {
+  if (this->maxtpn != 0) {
     snprintf(buf, sizeof(buf), "maxtpn.%d", this->index);
     names.push_back(buf);
     snprintf(buf, sizeof(buf), "%d", this->maxtpn);
     values.push_back(buf);
-    }
+  }
 
   snprintf(buf, sizeof(buf), "thread_usage_policy.%d", this->index);
   names.push_back(buf);
   values.push_back(this->thread_usage_str);
 
-  if (this->req_attr.size() != 0)
-    {
+  if (this->req_attr.size() != 0) {
     snprintf(buf, sizeof(buf), "reqattr.%d", this->index);
     names.push_back(buf);
     values.push_back(this->req_attr);
-    }
+  }
 
-  if (this->gres.size() != 0)
-    {
+  if (this->gres.size() != 0) {
     snprintf(buf, sizeof(buf), "gres.%d", this->index);
     names.push_back(buf);
     values.push_back(this->gres);
-    }
+  }
 
-  if (this->os.size() != 0)
-    {
+  if (this->os.size() != 0) {
     snprintf(buf, sizeof(buf), "opsys.%d", this->index);
     names.push_back(buf);
     values.push_back(this->os);
-    }
+  }
 
-  if (this->arch.size() != 0)
-    {
+  if (this->arch.size() != 0) {
     snprintf(buf, sizeof(buf), "arch.%d", this->index);
     names.push_back(buf);
     values.push_back(this->arch);
-    }
+  }
 
-  if (this->features.size() != 0)
-    {
+  if (this->features.size() != 0) {
     snprintf(buf, sizeof(buf), "features.%d", this->index);
     names.push_back(buf);
     values.push_back(this->features);
-    }
+  }
 
-  if (this->single_job_access == true)
-    {
+  if (this->single_job_access == true) {
     snprintf(buf, sizeof(buf), "single_job_access.%d", this->index);
     names.push_back(buf);
     values.push_back("true");
-    }
+  }
 
-  if (this->pack == true)
-    {
+  if (this->pack == true) {
     snprintf(buf, sizeof(buf), "pack.%d", this->index);
     names.push_back(buf);
     values.push_back("true");
-    }
+  }
 
-  if (this->hostlist.size() != 0)
-    {
-    for (unsigned int i = 0; i < this->hostlist.size(); i++)
-      {
+  if (this->hostlist.size() != 0) {
+    for (unsigned int i = 0; i < this->hostlist.size(); i++) {
       snprintf(buf, sizeof(buf), "hostlist.%d", this->index);
       names.push_back(buf);
       values.push_back(this->hostlist[i]);
-      }
     }
+  }
 
-  for (unsigned int i = 0; i < this->task_allocations.size(); i++)
-    {
+  for (unsigned int i = 0; i < this->task_allocations.size(); i++) {
     snprintf(buf, sizeof(buf), "task_usage.%d.task.%d", this->index, i);
     std::string task_info;
     this->task_allocations[i].write_task_information(task_info);
     names.push_back(buf);
     values.push_back(task_info);
-    }
+  }
 
-  if (this->per_task_cgroup == TRUE)
-    {
+  if (this->per_task_cgroup == TRUE) {
     snprintf(buf, sizeof(buf), "cpt.%d", this->index);
     names.push_back(buf);
     values.push_back("true");
-    }
-  else if (this->per_task_cgroup == FALSE)
-    {
+  } else if (this->per_task_cgroup == FALSE) {
     snprintf(buf, sizeof(buf), "cpt.%d", this->index);
     names.push_back(buf);
     values.push_back("false");
-    }
-  } // END get_values() 
-
+  }
+} // END get_values()
 
 void req::get_task_stats(
 
-  std::vector<int>                &task_index,
-  std::vector<unsigned long>      &cput_used,
-  std::vector<unsigned long long> &mem_used)
+    std::vector<int> &task_index, std::vector<unsigned long> &cput_used,
+    std::vector<unsigned long long> &mem_used)
 
-  {
+{
   char this_hostname[PBS_MAXHOSTNAME];
   char buf[LOCAL_LOG_BUF_SIZE];
   int allocation_count = this->task_allocations.size();
@@ -1594,66 +1363,59 @@ void req::get_task_stats(
   cput_used.clear();
   mem_used.clear();
 
-  if (allocation_count == 0)
-    {
+  if (allocation_count == 0) {
     return;
-    }
+  }
 
   /* see if this task belongs to this host */
   rc = gethostname(this_hostname, PBS_MAXHOSTNAME);
-  if (rc != 0)
-    {
+  if (rc != 0) {
     sprintf(buf, "failed to get hostname: %s", strerror(errno));
     log_err(-1, __func__, buf);
     return;
-    }
+  }
 
-  for (unsigned int task_count = 0; task_count < allocation_count; task_count++)
-    {
+  for (unsigned int task_count = 0; task_count < allocation_count;
+       task_count++) {
     unsigned long cputime_used;
     unsigned long long memory_used;
     std::string task_host;
 
     this->get_task_host_name(task_host, task_count);
-    if (strcmp(task_host.c_str(), this_hostname))
-      {
+    if (strcmp(task_host.c_str(), this_hostname)) {
       /* names don't match. Get the next one */
       continue;
-      }
+    }
 
-    this->task_allocations[task_count].get_stats_used(cputime_used, memory_used);   
+    this->task_allocations[task_count].get_stats_used(cputime_used,
+                                                      memory_used);
 
     task_index.push_back(task_count);
     cput_used.push_back(cputime_used);
     mem_used.push_back(memory_used);
     num_tasks++;
-    }
+  }
 
-  } // END get_task_stats()
-
-
+} // END get_task_stats()
 
 char *capture_until_newline_and_advance(
 
-  char **current_ptr)
+    char **current_ptr)
 
-  {
+{
   char *retval = *current_ptr;
   char *current = *current_ptr;
   current = strchr(current, '\n');
 
-  if (current != NULL)
-    {
+  if (current != NULL) {
     *current = '\0';
     current++;
     move_past_whitespace(&current);
-    }
+  }
 
   *current_ptr = current;
-  return(retval);
-  } // END capture_until_newline_and_advance()
-
-
+  return (retval);
+} // END capture_until_newline_and_advance()
 
 /*
  * set_from_string()
@@ -1687,17 +1449,16 @@ char *capture_until_newline_and_advance(
 
 void req::set_from_string(
 
-  const std::string &req_str)
+    const std::string &req_str)
 
-  {
+{
   char *req = strdup(req_str.c_str());
   char *current = strchr(req, '[');
 
-  if (current == NULL)
-    {
+  if (current == NULL) {
     free(req);
     return;
-    }
+  }
 
   current++;
 
@@ -1705,11 +1466,10 @@ void req::set_from_string(
 
   // read the task count
   current = strchr(current, ':');
-  if (current == NULL)
-    {
+  if (current == NULL) {
     free(req);
     return;
-    }
+  }
 
   current += 2; // move past the ': '
   this->task_count = strtol(current, &current, 10);
@@ -1717,130 +1477,113 @@ void req::set_from_string(
   while (is_whitespace(*current))
     current++;
 
-  if (!strncmp(current, "lprocs", 6))
-    {
+  if (!strncmp(current, "lprocs", 6)) {
     // found lprocs
     current += 8; // move past 'lprocs: '
 
-    if (*current == 'a')
-      {
+    if (*current == 'a') {
       this->execution_slots = ALL_EXECUTION_SLOTS;
       current += 3; // move past 'all'
-      }
-    else
+    } else
       this->execution_slots = strtol(current, &current, 10);
 
-    move_past_whitespace(&current); 
-    }
-  
-  if (!strncmp(current, "mem", 3))
-    {
+    move_past_whitespace(&current);
+  }
+
+  if (!strncmp(current, "mem", 3)) {
     // found mem
     current += 5; // move past 'mem: '
     this->mem = strtoll(current, &current, 10);
     current += 2; // move past 'kb'
 
-    move_past_whitespace(&current); 
-    }
+    move_past_whitespace(&current);
+  }
 
-  if (!strncmp(current, "swap", 4))
-    {
+  if (!strncmp(current, "swap", 4)) {
     // found swap
     current += 6; // move past 'swap: '
     this->swap = strtoll(current, &current, 10);
     current += 2; // move past kb
-    
-    move_past_whitespace(&current);
-    }
 
-  if (!strncmp(current, "disk", 4))
-    {
+    move_past_whitespace(&current);
+  }
+
+  if (!strncmp(current, "disk", 4)) {
     current += 6; // move past 'disk: '
     this->disk = strtoll(current, &current, 10);
     current += 2; // move past kb
 
     move_past_whitespace(&current);
-    }
+  }
 
-  if (!strncmp(current, "node", 4))
-    {
+  if (!strncmp(current, "node", 4)) {
     current += 6; // move past 'node: '
     this->nodes = strtol(current, &current, 10);
 
     move_past_whitespace(&current);
-    }
+  }
 
-  if (!strncmp(current, "socket", 6))
-    {
+  if (!strncmp(current, "socket", 6)) {
     current += 8; // move past 'socket: '
     this->socket = strtol(current, &current, 10);
-    
-    move_past_whitespace(&current);
-    }
 
-  if (!strncmp(current, "numanode", 8))
-    {
+    move_past_whitespace(&current);
+  }
+
+  if (!strncmp(current, "numanode", 8)) {
     current += 10; // move past 'numanode: '
     this->numa_nodes = strtol(current, &current, 10);
 
     move_past_whitespace(&current);
-    }
+  }
 
-  if (!strncmp(current, "core", 4))
-    {
+  if (!strncmp(current, "core", 4)) {
     current += 6; // move past 'core: '
     this->cores = strtol(current, &current, 10);
 
     move_past_whitespace(&current);
-    }
+  }
 
   if ((!strncmp(current, "thread", 6)) &&
-      (strncmp(current, "thread usage policy", 19)))
-    {
+      (strncmp(current, "thread usage policy", 19))) {
     current += 8; // move past 'thread: '
     this->threads = strtol(current, &current, 10);
 
     move_past_whitespace(&current);
-    }
+  }
 
-  if (!strncmp(current, "gpus", 4))
-    {
+  if (!strncmp(current, "gpus", 4)) {
     current += 6; // move past 'gpus: '
     this->gpus = strtol(current, &current, 10);
 
     move_past_whitespace(&current);
 
-    if (!strncmp(current, "gpu mode", 8))
-      {
+    if (!strncmp(current, "gpu mode", 8)) {
       current += 10; // move past 'gpu mode: '
       this->gpu_mode = capture_until_newline_and_advance(&current);
-      }
     }
+  }
 
-  if (!strncmp(current, "gpus", 4))
-    {
-    current += 6; //move past 'gpus:'
+  if (!strncmp(current, "gpus", 4)) {
+    current += 6; // move past 'gpus:'
     this->gpus = strtol(current, &current, 10);
-    }
+  }
 
-  if (!strncmp(current, "mics", 4))
-    {
+  if (!strncmp(current, "mics", 4)) {
     current += 6; // move past 'mics: '
     this->mics = strtol(current, &current, 10);
 
     move_past_whitespace(&current);
-    }
+  }
 
-  if (!strncmp(current, "max tpn", 7))
-    {
+  if (!strncmp(current, "max tpn", 7)) {
     current += 9; // move past 'max tpn: '
     this->maxtpn = strtol(current, &current, 10);
-    
-    move_past_whitespace(&current);
-    }
 
-  if (!strncmp(current, "thread usage policy", 19))
-    {
+    move_past_whitespace(&current);
+  }
+
+  if (!strncmp(current, "thread usage policy", 19)) {
     current += 21; // move past 'thread usage policy: '
 
     this->thread_usage_str = capture_until_newline_and_advance(&current);
@@ -1853,31 +1596,25 @@ void req::set_from_string(
       this->thread_usage_policy = ALLOW_THREADS;
     else
       this->thread_usage_policy = USE_FAST_CORES;
-    }
+  }
 
-  if (!strncmp(current, "placement type", 14))
-    {
+  if (!strncmp(current, "placement type", 14)) {
     current += 16; // move past 'placement type: '
-    
+
     this->placement_str = capture_until_newline_and_advance(&current);
 
-    if (current == NULL)
-      {
+    if (current == NULL) {
       free(req);
       return;
-      }
     }
+  }
 
-  if ((current != NULL) &&
-      (!strncmp(current, "reqattr", 7)))
-    {
+  if ((current != NULL) && (!strncmp(current, "reqattr", 7))) {
     current += 9; // move past 'reqattr: '
     this->req_attr = capture_until_newline_and_advance(&current);
-    }
+  }
 
-  if ((current != NULL) &&
-      (!strncmp(current, "gres", 4)))
-    {
+  if ((current != NULL) && (!strncmp(current, "gres", 4))) {
     current += 6; // move past 'gres: '
 
     char *tmp = current;
@@ -1887,11 +1624,9 @@ void req::set_from_string(
     this->gres = tmp;
 
     move_past_whitespace(&current);
-    }
+  }
 
-  if ((current != NULL) &&
-      (!strncmp(current, "os", 2)))
-    {
+  if ((current != NULL) && (!strncmp(current, "os", 2))) {
     current += 4; // move past 'os: '
 
     char *tmp = current;
@@ -1901,11 +1636,9 @@ void req::set_from_string(
     this->os = tmp;
 
     move_past_whitespace(&current);
-    }
+  }
 
-  if ((current != NULL) &&
-      (!strncmp(current, "arch", 4)))
-    {
+  if ((current != NULL) && (!strncmp(current, "arch", 4))) {
     current += 6; // move past 'arch: '
 
     char *tmp = current;
@@ -1915,29 +1648,23 @@ void req::set_from_string(
     this->arch = tmp;
 
     move_past_whitespace(&current);
-    }
+  }
 
-  if ((current != NULL) &&
-      (!strncmp(current, "hostlist", 8)))
-    {
+  if ((current != NULL) && (!strncmp(current, "hostlist", 8))) {
     current += 10; // move past 'hostlist: '
 
     char *tmp = current;
     current = strchr(current, '\n');
-    if (current != NULL)
-    {
+    if (current != NULL) {
       *current = '\0';
       current++;
       move_past_whitespace(&current);
     }
 
     this->insert_hostname(tmp);
+  }
 
-    }
-
-  if ((current != NULL) &&
-      (!strncmp(current, "features", 8)))
-    {
+  if ((current != NULL) && (!strncmp(current, "features", 8))) {
     current += 10; // move past 'features: '
 
     char *tmp = current;
@@ -1947,44 +1674,34 @@ void req::set_from_string(
     this->features = tmp;
 
     move_past_whitespace(&current);
-    }
+  }
 
-  if ((current != NULL) &&
-      (!strncmp(current, "single job access", 17)))
-    {
+  if ((current != NULL) && (!strncmp(current, "single job access", 17))) {
     current += 17;
     this->single_job_access = true;
 
     move_past_whitespace(&current);
-    }
+  }
 
-  if ((current != NULL) &&
-      (!strncmp(current, "pack", 4)))
-    {
+  if ((current != NULL) && (!strncmp(current, "pack", 4))) {
     current += 4;
     this->pack = true;
-    
-    move_past_whitespace(&current);
-    }
-  
-  if ((current != NULL) &&
-      ((!strncmp(current, "cpt", 3)) ||
-       (!strncmp(current, "cgroup_per_task", 15))))
-    {
-    this->per_task_cgroup = TRUE;
-    }
 
-  if ((current != NULL) &&
-      ((!strncmp(current, "cph", 3)) ||
-       (!strncmp(current, "cgroup_per_host", 15))))
-    {
+    move_past_whitespace(&current);
+  }
+
+  if ((current != NULL) && ((!strncmp(current, "cpt", 3)) ||
+                            (!strncmp(current, "cgroup_per_task", 15)))) {
+    this->per_task_cgroup = TRUE;
+  }
+
+  if ((current != NULL) && ((!strncmp(current, "cph", 3)) ||
+                            (!strncmp(current, "cgroup_per_host", 15)))) {
     this->per_task_cgroup = FALSE;
-    }
+  }
 
   free(req);
-  } // END set_from_string() 
-
-
+} // END set_from_string()
 
 /*
  * set_value()
@@ -1992,93 +1709,62 @@ void req::set_from_string(
  * Sets a value on this class identified by name
  * @param name - the name of the value to be set
  * @param value - the value
- * @return PBSE_NONE if the name is valid or PBSE_BAD_PARAMETER for an invalid name
+ * @return PBSE_NONE if the name is valid or PBSE_BAD_PARAMETER for an invalid
+ * name
  */
 
 int req::set_value(
 
-  const char *name,
-  const char *value,
-  bool        is_default)
+    const char *name, const char *value, bool is_default)
 
-  {
+{
   int rc = PBSE_NONE;
 
   if (!strncmp(name, "index", 5))
     this->index = strtol(value, NULL, 10);
-  else if (!strncmp(name, "task_count", 10))
-    {
+  else if (!strncmp(name, "task_count", 10)) {
     if (this->task_count <= 1)
       this->task_count = strtol(value, NULL, 10);
-    }
-  else if (!strncmp(name, "lprocs", 6))
-    {
+  } else if (!strncmp(name, "lprocs", 6)) {
     if ((this->execution_slots <= 1) &&
-        (this->execution_slots != ALL_EXECUTION_SLOTS))
-      {
+        (this->execution_slots != ALL_EXECUTION_SLOTS)) {
       if (value[0] == 'a')
         this->execution_slots = ALL_EXECUTION_SLOTS;
-      else
-        {
+      else {
         if (this->execution_slots <= 1)
           this->execution_slots = strtol(value, NULL, 10);
-        }
       }
     }
-  else if (!strncmp(name, "memory", 6))
-    {
-    if ((!is_default) ||
-        (this->mem == 0))
-      {
+  } else if (!strncmp(name, "memory", 6)) {
+    if ((!is_default) || (this->mem == 0)) {
       if ((rc = read_mem_value(value, this->mem)) != PBSE_NONE)
-        return(rc);
-      }
+        return (rc);
     }
-  else if (!strncmp(name, "swap", 4))
-    {
-    if ((!is_default) ||
-        (this->swap == 0))
-      {
+  } else if (!strncmp(name, "swap", 4)) {
+    if ((!is_default) || (this->swap == 0)) {
       if ((rc = read_mem_value(value, this->swap)) != PBSE_NONE)
-        return(rc);
-      }
+        return (rc);
     }
-  else if (!strncmp(name, "disk", 4))
-    {
-    if ((!is_default) ||
-        (this->disk == 0))
-      {
+  } else if (!strncmp(name, "disk", 4)) {
+    if ((!is_default) || (this->disk == 0)) {
       if ((rc = read_mem_value(value, this->disk)) != PBSE_NONE)
-        return(rc);
-      }
+        return (rc);
     }
-  else if (!strcmp(name, "node"))
-    {
-    if ((!is_default) ||
-        (this->nodes == 0))
-      {
+  } else if (!strcmp(name, "node")) {
+    if ((!is_default) || (this->nodes == 0)) {
       this->nodes = strtol(value, NULL, 10);
-      }
     }
-  else if (!strncmp(name, "socket", 7))
-    {
-    if ((!is_default) ||
-        (this->socket == 0))
-      {
+  } else if (!strncmp(name, "socket", 7)) {
+    if ((!is_default) || (this->socket == 0)) {
       this->socket = strtol(value, NULL, 10);
       this->placement_str = place_socket;
-      }
     }
-  else if (!strncmp(name, "numanode", 10))
-    {
-    if ((!is_default) ||
-        (this->numa_nodes == 0))
-      {
+  } else if (!strncmp(name, "numanode", 10)) {
+    if ((!is_default) || (this->numa_nodes == 0)) {
       this->numa_nodes = strtol(value, NULL, 10);
       this->placement_str = place_numa_node;
-      }
     }
-  else if (!strncmp(name, "gpus", 4))
+  } else if (!strncmp(name, "gpus", 4))
     this->gpus = strtol(value, NULL, 10);
   else if (!strncmp(name, "gpu_mode", 8))
     this->gpu_mode = value;
@@ -2086,18 +1772,14 @@ int req::set_value(
     this->mics = strtol(value, NULL, 10);
   else if (!strncmp(name, "maxtpn", 6))
     this->maxtpn = strtol(value, NULL, 10);
-  else if (!strncmp(name, "thread_usage_policy", 19))
-    {
+  else if (!strncmp(name, "thread_usage_policy", 19)) {
     /* allowthreads is set by default. Only change
        if value is not allowthreads */
     if (strcmp(value, "allowthreads") != 0)
       this->thread_usage_str = value;
-    }
-  else if (!strncmp(name, "placement_type", 14))
-    {
+  } else if (!strncmp(name, "placement_type", 14)) {
     this->set_place_value(value);
-    }
-  else if (!strncmp(name, "reqattr", 7))
+  } else if (!strncmp(name, "reqattr", 7))
     this->req_attr = value;
   else if (!strncmp(name, "gres", 4))
     this->gres = value;
@@ -2111,46 +1793,32 @@ int req::set_value(
     this->single_job_access = true;
   else if (!strncmp(name, "pack", 4))
     this->pack = true;
-  else if (!strncmp(name, "cpt", 3))
-    {
-    if ((!is_default) ||
-        (this->per_task_cgroup == -1))
-      {
+  else if (!strncmp(name, "cpt", 3)) {
+    if ((!is_default) || (this->per_task_cgroup == -1)) {
       if (value[0] == 't')
         this->per_task_cgroup = TRUE;
       else
         this->per_task_cgroup = FALSE;
-      }
     }
-  else if (!strncmp(name, "hostlist", 8))
+  } else if (!strncmp(name, "hostlist", 8))
     this->insert_hostname(value);
-  else if (!strcmp(name, "core"))
-    {
-    if ((!is_default) ||
-        (this->cores == 0))
-      {
+  else if (!strcmp(name, "core")) {
+    if ((!is_default) || (this->cores == 0)) {
       int core_count = strtol(value, NULL, 10);
       if (core_count != 0)
         this->cores = core_count;
-      }
     }
-  else if (!strcmp(name, "thread"))
-    {
-    if ((!is_default) ||
-        (this->threads == 0))
-      {
+  } else if (!strcmp(name, "thread")) {
+    if ((!is_default) || (this->threads == 0)) {
       int thread_count = strtol(value, NULL, 10);
       if (thread_count != 0)
         this->threads = thread_count;
-      }
     }
-  else
-    return(PBSE_BAD_PARAMETER);
+  } else
+    return (PBSE_BAD_PARAMETER);
 
-  return(PBSE_NONE);
-  } // END set_value()
-
-
+  return (PBSE_NONE);
+} // END set_value()
 
 /*
  * set_value()
@@ -2158,201 +1826,192 @@ int req::set_value(
  * Sets a value on this class identified by name
  * @param name - the name of the value to be set
  * @param value - the value
- * @return PBSE_NONE if the name is valid or PBSE_BAD_PARAMETER for an invalid name
+ * @return PBSE_NONE if the name is valid or PBSE_BAD_PARAMETER for an invalid
+ * name
  */
 
 int req::set_task_value(
 
-  const char  *value,
-  unsigned int task_index)
+    const char *value, unsigned int task_index)
 
-  {
+{
 
   int rc;
   unsigned int allocations_size = this->task_allocations.size();
 
-  if (allocations_size <= task_index)
-    {
-    // There are fewer tasks than task_index. Add empty tasks until we get to task_index
-       
-    for (unsigned int i = allocations_size; i < task_index; i++)
-      {
+  if (allocations_size <= task_index) {
+    // There are fewer tasks than task_index. Add empty tasks until we get to
+    // task_index
+
+    for (unsigned int i = allocations_size; i < task_index; i++) {
       allocation a;
 
       rc = this->get_task_allocation(task_index, a);
-      if (rc != PBSE_NONE)
-        {
+      if (rc != PBSE_NONE) {
         this->task_allocations.push_back(a);
-        }
       }
-      allocation a;
-      a.initialize_from_string(value);
-      this->task_allocations.push_back(a);
     }
-  else
-    {
+    allocation a;
+    a.initialize_from_string(value);
+    this->task_allocations.push_back(a);
+  } else {
     this->task_allocations[task_index].initialize_from_string(value);
-    }
+  }
 
-  return(PBSE_NONE);
-  } // END set_task_value()
- 
+  return (PBSE_NONE);
+} // END set_task_value()
 
 int req::getExecutionSlots() const
 
-  {
-  return(this->execution_slots);
-  }
+{
+  return (this->execution_slots);
+}
 
-unsigned long req::getMemory() const 
+unsigned long req::getMemory() const
 
-  {
-  return(this->mem);
-  }
+{
+  return (this->mem);
+}
 
 unsigned long req::getSwap() const
 
-  {
-  return(this->swap);
-  }
+{
+  return (this->swap);
+}
 
 unsigned long req::getDisk() const
 
-  {
-  return(this->disk);
-  }
+{
+  return (this->disk);
+}
 
 std::string req::getGres() const
 
-  {
-  return(this->gres);
-  }
+{
+  return (this->gres);
+}
 
 std::string req::getOS() const
 
-  {
-  return(this->os);
-  }
+{
+  return (this->os);
+}
 
 std::string req::getNodeAccessPolicy() const
 
-  {
-  return(this->node_access_policy);
-  }
+{
+  return (this->node_access_policy);
+}
 
 std::string req::getPlacementType() const
 
-  {
-  return(this->placement_str);
-  }
+{
+  return (this->placement_str);
+}
 
 int req::getTaskCount() const
 
-  {
-  return(this->task_count);
-  }
+{
+  return (this->task_count);
+}
 
 int req::getHostlist(
-    
-  std::vector<std::string> &list) const
 
-  {
+    std::vector<std::string> &list) const
+
+{
   int rc = PBSE_EMPTY;
 
   list.clear();
-  for (unsigned int i = 0; i < this->hostlist.size(); i ++)
-    {
+  for (unsigned int i = 0; i < this->hostlist.size(); i++) {
     list.push_back(this->hostlist[i]);
     rc = PBSE_NONE;
-    }
-  return(rc);
   }
+  return (rc);
+}
 
 std::string req::getFeatures() const
 
-  {
-  return(this->features);
-  }
+{
+  return (this->features);
+}
 
 std::string req::getThreadUsageString() const
 
-  {
-  return(this->thread_usage_str);
-  }
+{
+  return (this->thread_usage_str);
+}
 
 void req::set_index(
 
-  int index)
+    int index)
 
-  {
+{
   this->index = index;
-  }
-    
+}
+
 int req::getMaxtpn() const
 
-  {
-  return(this->maxtpn);
-  }
+{
+  return (this->maxtpn);
+}
 
 std::string req::getGpuMode() const
 
-  {
-  return(this->gpu_mode);
-  }
+{
+  return (this->gpu_mode);
+}
 
 std::string req::getReqAttr() const
 
-  {
-  return(this->req_attr);
-  }
+{
+  return (this->req_attr);
+}
 
 std::string req::get_gpu_mode() const
 
-  {
-  return(this->gpu_mode);
-  }
+{
+  return (this->gpu_mode);
+}
 
 int req::getIndex() const
 
-  {
-  return(this->index);
-  }
+{
+  return (this->index);
+}
 
 int req::getGpus() const
 
-  {
-  return(this->gpus);
-  }
+{
+  return (this->gpus);
+}
 
 int req::getMics() const
 
-  {
-  return(this->mics);
-  }
+{
+  return (this->mics);
+}
 
 bool req::is_per_task() const
 
-  {
-  return(this->per_task_cgroup == TRUE);
-  }
+{
+  return (this->per_task_cgroup == TRUE);
+}
 
-bool req::cgroup_preference_set() const
-  {
-  return(this->per_task_cgroup != -1);
-  }
-
-
+bool req::cgroup_preference_set() const {
+  return (this->per_task_cgroup != -1);
+}
 
 /*
  * get_num_tasks_for_host()
- * Based on the hostlist, determines the number of tasks from this req assigned 
+ * Based on the hostlist, determines the number of tasks from this req assigned
  * to this host
  * hostlist is in the format:
  * hostname1/<index range[+hostname2/<index range>[...]]
  * index range is in the format:
  * digit[-digit][,digit][...]
- * We find the ratio of the number of tasks assigned to this host to the number of cores per task
- * That raio is the number of tasks assigned to this host
+ * We find the ratio of the number of tasks assigned to this host to the number
+ * of cores per task That raio is the number of tasks assigned to this host
  *
  * @param host - the hostname for which we're determining the number of tasks
  * @return the number of tasks assigned to this host (can be 0)
@@ -2360,46 +2019,41 @@ bool req::cgroup_preference_set() const
 
 int req::get_num_tasks_for_host(
 
-  const std::string &host) const
+    const std::string &host) const
 
-  {
-  int  task_count = 0;
-  unsigned int  host_count = this->hostlist.size();
+{
+  int task_count = 0;
+  unsigned int host_count = this->hostlist.size();
 
   if (host_count == 0)
-    return(0); /* No host name, no tasks */
+    return (0); /* No host name, no tasks */
 
   /* Check to see if this host exists in the req */
-  for (unsigned int i = 0; i < this->hostlist.size(); i++)
-    {
+  for (unsigned int i = 0; i < this->hostlist.size(); i++) {
     size_t pos = this->hostlist[i].find(host);
 
-    if (pos != std::string::npos)
-      {
+    if (pos != std::string::npos) {
       unsigned int offset = pos + host.size();
 
       if ((this->execution_slots == ALL_EXECUTION_SLOTS) ||
           (!strncmp(this->placement_str.c_str(), "node", 4)))
         task_count = 1;
       else if ((this->hostlist[i].size() <= offset) ||
-              ((this->hostlist[i].at(offset) != ':') &&
-              (this->hostlist[i].at(offset) != '/')))
-        {
+               ((this->hostlist[i].at(offset) != ':') &&
+                (this->hostlist[i].at(offset) != '/'))) {
         task_count = 1;
-        }
-      else
-        {
+      } else {
         int num_ppn = 0;
 
         // handle both :ppn=X and /range
         // + 5 for ':ppn='
-        if (this->hostlist[i].at(offset) == '/')
-          {
-          char             *range_str = strdup(this->hostlist[i].substr(offset + 1).c_str());
-          char             *ptr;
-          std::vector<int>  indices;
+        if (this->hostlist[i].at(offset) == '/') {
+          char *range_str =
+              strdup(this->hostlist[i].substr(offset + 1).c_str());
+          char *ptr;
+          std::vector<int> indices;
 
-          // truncate any further entries 
+          // truncate any further entries
           if ((ptr = strchr(range_str, '+')) != NULL)
             *ptr = '\0';
 
@@ -2407,36 +2061,29 @@ int req::get_num_tasks_for_host(
           num_ppn = indices.size();
 
           free(range_str);
-          }
-        else
-          {
-          std::string  ppn_val = this->hostlist[i].substr(offset + 5);
-          char        *ppn_str = strdup(ppn_val.c_str());
-          
+        } else {
+          std::string ppn_val = this->hostlist[i].substr(offset + 5);
+          char *ppn_str = strdup(ppn_val.c_str());
+
           num_ppn = strtol(ppn_str, NULL, 10);
 
           free(ppn_str);
-          }
-          
-        task_count = num_ppn / this->execution_slots;
- 
         }
+
+        task_count = num_ppn / this->execution_slots;
       }
     }
+  }
 
-  return(task_count);
-  } // END get_num_tasks_for_host()
-
-
-
-
+  return (task_count);
+} // END get_num_tasks_for_host()
 
 int req::get_num_tasks_for_host(
 
-  int num_ppn) const
+    int num_ppn) const
 
-  {
-  int         task_count = 0;
+{
+  int task_count = 0;
 
   if ((this->execution_slots == ALL_EXECUTION_SLOTS) ||
       (!strncmp(this->placement_str.c_str(), "node", 4)))
@@ -2444,9 +2091,8 @@ int req::get_num_tasks_for_host(
   else
     task_count = num_ppn / this->execution_slots;
 
-  return(task_count);
-  } // END get_num_tasks_for_host()
-
+  return (task_count);
+} // END get_num_tasks_for_host()
 
 /*
  * get_task_allocation()
@@ -2460,21 +2106,19 @@ int req::get_num_tasks_for_host(
 
 int req::get_task_allocation(
 
-  unsigned int  index,
-  allocation &task_allocation) const
+    unsigned int index, allocation &task_allocation) const
 
-  {
+{
   unsigned int size = this->task_allocations.size();
 
-  if (index >= size)
-    {
-    return(PBSE_IVALREQ);
-    }
+  if (index >= size) {
+    return (PBSE_IVALREQ);
+  }
 
   task_allocation = this->task_allocations[index];
 
-  return(PBSE_NONE);
-  }
+  return (PBSE_NONE);
+}
 
 /*
  * get_swap_per_task
@@ -2485,10 +2129,9 @@ int req::get_task_allocation(
 
 unsigned long long req::get_swap_per_task()
 
-  {
-  return(this->swap);
-  }
-
+{
+  return (this->swap);
+}
 
 /*
  * get_memory_per_task
@@ -2499,9 +2142,9 @@ unsigned long long req::get_swap_per_task()
 
 unsigned long long req::get_memory_per_task()
 
-  {
-  return(this->mem);
-  }
+{
+  return (this->mem);
+}
 
 /*
  * get_swap_for_host()
@@ -2512,16 +2155,14 @@ unsigned long long req::get_memory_per_task()
 
 unsigned long long req::get_swap_for_host(
 
-  const std::string &host) const
+    const std::string &host) const
 
-  {
-  int           num_tasks = this->get_num_tasks_for_host(host);
+{
+  int num_tasks = this->get_num_tasks_for_host(host);
   unsigned long long swap = this->swap * num_tasks;
 
-  return(swap);
-  } // END get_swap_for_host()
-
-
+  return (swap);
+} // END get_swap_for_host()
 
 /*
  * get_memory_for_host()
@@ -2532,34 +2173,28 @@ unsigned long long req::get_swap_for_host(
 
 unsigned long long req::get_memory_for_host(
 
-  const std::string &host) const
+    const std::string &host) const
 
-  {
-  int           num_tasks = this->get_num_tasks_for_host(host);
+{
+  int num_tasks = this->get_num_tasks_for_host(host);
   unsigned long long mem = this->mem * num_tasks;
 
-  return(mem);
-  } // END get_memory_for_host()
-
-
+  return (mem);
+} // END get_memory_for_host()
 
 void req::record_allocation(
 
-  const allocation &a)
+    const allocation &a)
 
-  {
+{
   this->task_allocations.push_back(a);
-  } // END record_allocation()
-
-
+} // END record_allocation()
 
 void req::clear_allocations()
 
-  {
+{
   this->task_allocations.clear();
-  } // END clear_allocations()
-
-
+} // END clear_allocations()
 
 /*
  * set_hostlist()
@@ -2567,119 +2202,105 @@ void req::clear_allocations()
 
 void req::set_hostlist(
 
-  const char *hostlist)
+    const char *hostlist)
 
-  {
+{
   this->insert_hostname(hostlist);
-  } // END set_hostlist()
-
+} // END set_hostlist()
 
 void req::update_hostlist(
 
-  const std::string &host_spec)
+    const std::string &host_spec)
 
-  {
+{
   this->insert_hostname(host_spec.c_str());
-  } // END update_hostlist()
+} // END update_hostlist()
 
-    
 void req::set_memory(
-    
-  unsigned long mem)
 
-  {
+    unsigned long mem)
+
+{
   this->mem = mem;
-  }
+}
 
 void req::set_swap(
 
-  unsigned long swap)
+    unsigned long swap)
 
-  {
+{
   this->swap = swap;
-  }
+}
 
 int req::get_execution_slots() const
 
-  {
-  return(this->execution_slots);
-  }
-
+{
+  return (this->execution_slots);
+}
 
 void req::set_execution_slots(
-    
-  int execution_slots)
 
-  {
+    int execution_slots)
+
+{
   this->execution_slots = execution_slots;
-  }
+}
 
 void req::set_task_count(
-    
-  int task_count)
 
-  {
+    int task_count)
+
+{
   this->task_count = task_count;
-  }
+}
 
 int req::get_sockets() const
 
-  {
-  return(this->socket);
-  }
+{
+  return (this->socket);
+}
 
 int req::get_numa_nodes() const
 
-  {
-  return(this->numa_nodes);
-  }
+{
+  return (this->numa_nodes);
+}
 
-int req::getPlaceCores() const
-  {
-  return(this->cores);
-  }
+int req::getPlaceCores() const { return (this->cores); }
 
-int req::getPlaceThreads() const
-  {
-  return(this->threads);
-  }
-
+int req::getPlaceThreads() const { return (this->threads); }
 
 int req::get_cores() const
 
-  {
+{
   int core_count = this->cores;
 
   if ((this->thread_usage_policy == USE_CORES) &&
       (this->execution_slots > this->cores))
     core_count = this->execution_slots;
 
-  return(core_count);
-  } // END get_cores()
-
-
+  return (core_count);
+} // END get_cores()
 
 int req::get_threads() const
 
-  {
-  return(this->execution_slots);
-  } // END get_threads()
+{
+  return (this->execution_slots);
+} // END get_threads()
 
 void req::set_task_usage_stats(
 
-  int task_index, 
-  unsigned long cput_used, 
-  unsigned long long mem_used)
+    int task_index, unsigned long cput_used, unsigned long long mem_used)
 
-  {
+{
   if (task_index > this->getTaskCount())
     return;
 
   this->task_allocations[task_index].set_task_usage_stats(cput_used, mem_used);
-  }
+}
 
 int req::get_place_type()
 
-  {
-  return(this->placement_type);
-  }
+{
+  return (this->placement_type);
+}

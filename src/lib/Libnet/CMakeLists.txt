@@ -1,18 +1,36 @@
 # torque-NG: Libnet Build Configuration
+# Copyright (c) 2026 Kenneth Nielson.
+# SPDX-License-Identifier: OpenPBS-2.3
+
 cmake_minimum_required(VERSION 3.10)
 project(torque-NG-Libnet LANGUAGES CXX)
 
 # 1. Define the library
-add_library(net_ng STATIC NetworkManager.cpp)
+# Standardized to Libnet so mom_ng can find it
+add_library(Libnet STATIC 
+    NetworkManager.cpp
+    # Add AsyncConnection.cpp here if you've created it
+)
 
 # 2. Header Management
-# PUBLIC ensures that anyone linking to net_ng (like server_test) 
-# automatically finds NetworkManager.hpp.
-target_include_directories(net_ng 
-    PUBLIC  ${CMAKE_CURRENT_SOURCE_DIR}
-    PUBLIC  ${PROJECT_SOURCE_DIR}/src/include
+# We include ${CMAKE_BINARY_DIR}/src so we can use #include "proto/tm_messages.pb.h"
+target_include_directories(Libnet PUBLIC 
+    ${CMAKE_CURRENT_SOURCE_DIR}
+    ${PROJECT_SOURCE_DIR}/src/include
+    ${CMAKE_BINARY_DIR}/src
 )
 
 # 3. Dependency Linking
-# Networking often needs logging for connection events
-target_link_libraries(net_ng PUBLIC log_ng)
+# Changed log_ng to Liblog to match your new naming standard
+target_link_libraries(Libnet PUBLIC 
+    Liblog
+    Libproto
+)
+
+# 4. Compiler Requirements
+target_compile_features(Libnet PUBLIC cxx_std_20)
+
+# Ensure coroutine support propagates to anything using Libnet
+if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+    target_compile_options(Libnet INTERFACE -fcoroutines)
+endif()

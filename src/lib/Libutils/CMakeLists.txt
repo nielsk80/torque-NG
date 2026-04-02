@@ -1,4 +1,6 @@
 # torque-NG: Libutils Build Configuration
+# Copyright (c) 2026 Kenneth Nielson.
+
 cmake_minimum_required(VERSION 3.12)
 project(torque-NG-Libutils LANGUAGES CXX)
 
@@ -23,26 +25,25 @@ set(LIBUTILS_SOURCES
 )
 
 # 3. Create Library
-add_library(utils_ng STATIC ${LIBUTILS_SOURCES})
+# Standardized to Libutils
+add_library(Libutils STATIC ${LIBUTILS_SOURCES})
 
 # 4. Modern Header Management
-# We use PUBLIC so that Libproto/MOM can see these headers automatically
-target_include_directories(utils_ng 
+target_include_directories(Libutils 
     PUBLIC  ${CMAKE_CURRENT_SOURCE_DIR}
-    PUBLIC  ${CMAKE_CURRENT_SOURCE_DIR}/../../include
-    ${CMAKE_BINARY_DIR}/src/proto # For torque_ng.pb.h
+    PUBLIC  ${PROJECT_SOURCE_DIR}/src/include      # Allows finding allocation.hpp
+    PUBLIC  ${PROJECT_SOURCE_DIR}/src/lib/Liblog   # Allows finding pbs_log.h
+    PUBLIC  ${CMAKE_BINARY_DIR}/src                # For generated protos
+    PUBLIC  ${CMAKE_BINARY_DIR}/src/proto                # For generated protos
     PRIVATE ${HWLOC_INCLUDE_DIRS}
 )
 
 # 5. Dependency Linking
-# Linking log_ng as PUBLIC means anyone using utils_ng also gets the logger
-target_link_libraries(utils_ng 
-    PUBLIC  log_ng 
+target_link_libraries(Libutils 
+    PUBLIC  Liblog 
     PUBLIC  ${HWLOC_LIBRARIES}
     PUBLIC  Threads::Threads
 )
 
-# GCC 8 filesystem support
-if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" AND CMAKE_CXX_COMPILER_VERSION VERSION_LESS 9.0)
-    target_link_libraries(utils_ng PUBLIC stdc++fs)
-endif()
+# 6. Compiler Features
+target_compile_features(Libutils PUBLIC cxx_std_20)

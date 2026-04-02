@@ -7,7 +7,7 @@ cmake_minimum_required(VERSION 3.10)
 project(torque-NG LANGUAGES CXX)
 
 # Set C++ Standard for the whole project
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # Initialize the Ctest infrastructure
@@ -27,7 +27,9 @@ add_subdirectory(src/lib/Libutils)
 add_subdirectory(src/lib/Libnet)
 add_subdirectory(src/lib/Libproto)
 add_subdirectory(src/lib/Libcommon)
+add_subdirectory(src/resmom)
 add_subdirectory(tests/lib/Libproto)
 add_subdirectory(tests/proto)
 add_subdirectory(tests/lib/Libutils)
 add_subdirectory(tests/lib/Libcommon)
+add_subdirectory(tests/lib/Libnet)

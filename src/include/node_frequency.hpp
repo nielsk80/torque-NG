@@ -79,53 +79,42 @@
  * without reference to its choice of law rules.
  */
 
+#include "attribute.h"
+#include "cpu_frequency.hpp"
+#include "pbs_error.h"
 #include <string>
 #include <vector>
-#include "cpu_frequency.hpp"
-#include "attribute.h"
-#include "pbs_error.h"
 
-class node_frequency
-  {
+class node_frequency {
 private:
-
-  typedef struct
-    {
+  typedef struct {
     cpu_frequency_type type;
-    unsigned long      currFrequency;
-    unsigned long      maxFrequency;
-    unsigned long      minFrequency;
-    } cpu_frequency_save;
+    unsigned long currFrequency;
+    unsigned long maxFrequency;
+    unsigned long minFrequency;
+  } cpu_frequency_save;
 
   int last_error;
   std::vector<cpu_frequency> cpus;
   std::vector<cpu_frequency_save> base_frequencies;
 
-  bool save_base_frequencies(std::string& path);
-  bool load_base_frequencies(std::string& path);
+  bool save_base_frequencies(std::string &path);
+  bool load_base_frequencies(std::string &path);
 
 public:
-
   node_frequency();
   ~node_frequency();
-  bool get_frequency(cpu_frequency_type& type,unsigned long& currMhz,unsigned long& maxMhz,unsigned long& minMhz);
-  bool set_frequency(cpu_frequency_type type,unsigned long maxMhz,unsigned long minMhz);
-  bool get_frequency_string(std::string& str,bool full=false);
+  bool get_frequency(cpu_frequency_type &type, unsigned long &currMhz,
+                     unsigned long &maxMhz, unsigned long &minMhz);
+  bool set_frequency(cpu_frequency_type type, unsigned long maxMhz,
+                     unsigned long minMhz);
+  bool get_frequency_string(std::string &str, bool full = false);
   bool get_base_frequencies(const char *dir);
   bool restore_frequency();
-  void invalidate()
-    {
-    cpus.clear();
-    }
-  const char *get_last_error_string()
-    {
-    return pbse_to_txt(last_error);
-    }
-  int get_last_error()
-    {
-    return last_error;
-    }
-  };
+  void invalidate() { cpus.clear(); }
+  const char *get_last_error_string() { return pbse_to_txt(last_error); }
+  int get_last_error() { return last_error; }
+};
 
 extern node_frequency nd_frequency;
 

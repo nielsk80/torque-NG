@@ -2,7 +2,6 @@
 # Copyright (c) 2026 Kenneth Nielson.
 # SPDX-License-Identifier: OpenPBS-2.3
 
-# torque-NG: Libproto Logic and Vertical Slice Tests
 cmake_minimum_required(VERSION 3.10)
 project(torque-NG-Libproto LANGUAGES CXX)
 
@@ -17,10 +16,13 @@ add_library(torque_proto_logic STATIC
 target_include_directories(torque_proto_logic PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}
     ${PROJECT_SOURCE_DIR}/src/include
-    ${CMAKE_CURRENT_SOURCE_DIR}
+    ${CMAKE_BINARY_DIR}/src/proto  # Path to generated .pb.h files
 )
 
-# 5. Dependency Linking
-# This connects the logic to the generated protobuf code
-target_link_libraries(torque_proto_logic PUBLIC torque_proto)
-
+# 3. Dependency Linking
+# FIX: Link to 'Libproto' to match the target defined in src/proto/CMakeLists.txt
+target_link_libraries(torque_proto_logic PUBLIC 
+    Libproto
+    Liblog
+    Libcommon
+)

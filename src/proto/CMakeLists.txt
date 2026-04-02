@@ -4,25 +4,26 @@
 
 cmake_minimum_required(VERSION 3.10)
 
-# 1. Generate C++ Files from our updated unified contract
-# Removed job_status.proto and torque_messages.proto to prevent collisions
+# 1. Generate C++ Files
+# Added tm_messages.proto here so protoc generates the missing .pb.h
 protobuf_generate_cpp(PROTO_SRCS PROTO_HDRS 
     torque_ng.proto
+    tm_messages.proto
 )
 
 # 2. Create the Protocol Library
-add_library(torque_proto STATIC ${PROTO_SRCS} ${PROTO_HDRS})
+# Renamed to Libproto to match your test_libnet dependencies
+add_library(Libproto STATIC ${PROTO_SRCS} ${PROTO_HDRS})
 
 # 3. Compiler Requirements
-target_compile_features(torque_proto PUBLIC cxx_std_17)
-set_target_properties(torque_proto PROPERTIES POSITION_INDEPENDENT_CODE ON)
+target_compile_features(Libproto PUBLIC cxx_std_20) # Updated to 20 for Coroutine compatibility
+set_target_properties(Libproto PROPERTIES POSITION_INDEPENDENT_CODE ON)
 
 # 4. Dependency Linking
-target_link_libraries(torque_proto PUBLIC protobuf::libprotobuf)
+target_link_libraries(Libproto PUBLIC protobuf::libprotobuf)
 
 # 5. Header Export
-# This allows other targets to find torque_ng.pb.h and Dispatcher.hpp
-target_include_directories(torque_proto PUBLIC 
-   ${CMAKE_CURRENT_BINARY_DIR}  # Generated .pb.h files
-   ${CMAKE_CURRENT_SOURCE_DIR}  # Hand-written headers (Dispatcher.hpp)
+target_include_directories(Libproto PUBLIC 
+   ${CMAKE_CURRENT_BINARY_DIR}  # Where the .pb.h files will be created
+   ${CMAKE_CURRENT_SOURCE_DIR}  # Where the .proto files live
 )

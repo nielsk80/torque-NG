@@ -7,18 +7,18 @@
  */
 
 #include "torque_ng.pb.h"
-#include <string_view>
 #include <iostream>
+#include <string_view>
 
 namespace torque_ng {
 
-void send_job_update(const JobStatusUpdate& update) {
-    // Protobuf gives you direct serialization to strings or streams
-    std::string binary_data;
-    if (update.SerializeToString(&binary_data)) {
-        // Pass binary_data directly to your new Libnet socket logic
-        std::cout << "Sending " << binary_data.size() << " bytes of job data.\n";
-    }
+void send_job_update(const JobStatusUpdate &update) {
+  // Protobuf gives you direct serialization to strings or streams
+  std::string binary_data;
+  if (update.SerializeToString(&binary_data)) {
+    // Pass binary_data directly to your new Libnet socket logic
+    std::cout << "Sending " << binary_data.size() << " bytes of job data.\n";
+  }
 }
 
 } // namespace torque_ng

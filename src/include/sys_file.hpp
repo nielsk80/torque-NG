@@ -79,35 +79,30 @@
  * without reference to its choice of law rules.
  */
 
-#include <vector>
-#include <string>
 #include "attribute.h"
 #include "pbs_error.h"
-
+#include <string>
+#include <vector>
 
 /* A base class for manipulating files in the /sys pseudo file system.
  */
 
-class sys_file
-  {
+class sys_file {
 protected:
-
   int last_error;
 
-  bool get_number_from_file(std::string path, unsigned long& num);
-  bool get_numbers_from_file(std::string path, std::vector<unsigned long>& nums);
-  bool set_number_in_file(std::string path,unsigned long num);
-  bool get_string_from_file(std::string path,std::string& str);
-  bool get_strings_from_file(std::string path,std::vector<std::string>& strs);
-  bool set_string_in_file(std::string path,std::string str);
+  bool get_number_from_file(std::string path, unsigned long &num);
+  bool get_numbers_from_file(std::string path,
+                             std::vector<unsigned long> &nums);
+  bool set_number_in_file(std::string path, unsigned long num);
+  bool get_string_from_file(std::string path, std::string &str);
+  bool get_strings_from_file(std::string path, std::vector<std::string> &strs);
+  bool set_string_in_file(std::string path, std::string str);
 
 public:
-
-  sys_file(){last_error = 0;}
+  sys_file() { last_error = 0; }
   const char *get_last_error_string();
   int get_last_error();
-
-
-  };
+};
 
 #endif /* CPU_FREQUENCY_HPP */

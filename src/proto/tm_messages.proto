@@ -1,0 +1,72 @@
+syntax = "proto3";
+
+package torque_ng.tm;
+
+option optimize_for = SPEED;
+
+// The top-level envelope for all Sister-to-Sister communication
+message TmRequest {
+    oneof payload {
+        SpawnTaskRequest spawn_task = 1;
+        SignalTaskRequest signal_task = 2;
+        TerminateTaskRequest terminate_task = 3;
+        PollRequest poll = 4;
+    }
+}
+
+// 1. Spawning a task on a Sister Node
+message SpawnTaskRequest {
+    string job_id = 1;
+    uint32 task_index = 2;      // The rank within the job (e.g., MPI rank)
+    string executable_path = 3;
+    repeated string arguments = 4;
+    repeated string env_vars = 5;
+    string working_dir = 6;
+    
+    // Resource limits specific to this task
+    uint64 cpu_limit_ms = 7;
+    uint64 mem_limit_bytes = 8;
+}
+
+// 2. Sending a signal (SIGKILL, SIGTERM, etc.) to a remote task
+message SignalTaskRequest {
+    string job_id = 1;
+    uint32 task_index = 2;
+    int32 signal_number = 3;    // Standard Unix signal numbers
+}
+
+// 3. Immediate termination of a remote task
+message TerminateTaskRequest {
+    string job_id = 1;
+    uint32 task_index = 2;
+    bool force = 3;             // true = SIGKILL, false = SIGTERM
+}
+
+// 4. Polling for status or heartbeat
+message PollRequest {
+    string job_id = 1;
+}
+
+// --- Responses ---
+
+message TmResponse {
+    bool success = 1;
+    string error_message = 2;
+    oneof payload {
+        TaskStatusResponse status = 3;
+    }
+}
+
+message TaskStatusResponse {
+    enum State {
+        UNKNOWN = 0;
+        RUNNING = 1;
+        EXITED = 2;
+        SIGNALED = 3;
+    }
+    State state = 1;
+    int32 exit_code = 2;
+    uint64 cpu_used_ms = 3;
+    uint64 mem_used_bytes = 4;
+    uint32 process_id = 5;
+}

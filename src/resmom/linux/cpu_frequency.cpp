@@ -77,28 +77,23 @@
  * without reference to its choice of law rules.
  */
 
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <unistd.h>
-#include <iostream>
-#include <fstream>
-#include <boost/lexical_cast.hpp>
-#include <boost/algorithm/string.hpp>
-#include <sstream>
 #include <algorithm>
-
+#include <boost/algorithm/string.hpp>
+#include <boost/lexical_cast.hpp>
+#include <fstream>
+#include <iostream>
+#include <sstream>
+#include <sys/stat.h>
+#include <sys/types.h>
+#include <unistd.h>
 
 #include "cpu_frequency.hpp"
 
 const char *base_cpu_path = "/sys/devices/system/cpu/";
 
-bool descending(unsigned long i,unsigned long j)
-  {
-  return i>j;
-  }
+bool descending(unsigned long i, unsigned long j) { return i > j; }
 
-cpu_frequency::cpu_frequency(int cpu_number):governor(Invalid)
-  {
+cpu_frequency::cpu_frequency(int cpu_number) : governor(Invalid) {
   path = base_cpu_path;
   path += "cpu";
   std::stringstream cnv;
@@ -107,262 +102,233 @@ cpu_frequency::cpu_frequency(int cpu_number):governor(Invalid)
   path += "/cpufreq/";
 
   last_error = PBSE_NODE_CANT_MANAGE_FREQUENCY;
-  if(!get_number_from_file(path + "cpuinfo_min_freq",cpu_min_frequency))
-    {
+  if (!get_number_from_file(path + "cpuinfo_min_freq", cpu_min_frequency)) {
     valid = false;
     return;
-    }
-  if(!get_number_from_file(path + "cpuinfo_max_freq",cpu_max_frequency))
-    {
+  }
+  if (!get_number_from_file(path + "cpuinfo_max_freq", cpu_max_frequency)) {
     valid = false;
     return;
-    }
+  }
   std::vector<std::string> govs;
-  if(!get_strings_from_file(path + "scaling_available_governors",govs))
-    {
+  if (!get_strings_from_file(path + "scaling_available_governors", govs)) {
     valid = false;
     return;
-    }
-  for(std::vector<std::string>::iterator i = govs.begin();i != govs.end();i++)
-    {
+  }
+  for (std::vector<std::string>::iterator i = govs.begin(); i != govs.end();
+       i++) {
     cpu_frequency_type t = get_governor_type(*i);
-    if(t != Invalid)
-      {
+    if (t != Invalid) {
       available_governors.push_back(t);
-      }
     }
+  }
   std::string gov;
-  if(!get_string_from_file(path + "scaling_governor",gov))
-    {
+  if (!get_string_from_file(path + "scaling_governor", gov)) {
     valid = false;
     return;
-    }
+  }
   governor = get_governor_type(gov);
-  if(governor == Invalid)
-    {
+  if (governor == Invalid) {
     valid = false;
     return;
-    }
-  if(!get_numbers_from_file(path + "scaling_available_frequencies",available_frequencies))
-    {
+  }
+  if (!get_numbers_from_file(path + "scaling_available_frequencies",
+                             available_frequencies)) {
     valid = false;
     return;
-    }
-  std::sort(available_frequencies.begin(),available_frequencies.end(),descending);
+  }
+  std::sort(available_frequencies.begin(), available_frequencies.end(),
+            descending);
   valid = true;
   last_error = PBSE_NONE;
-  }
+}
 
-bool cpu_frequency::get_frequency(cpu_frequency_type& type,unsigned long& khz, unsigned long& khzUpper, unsigned long& khzLower)
-  {
-  if(!valid) return false;
+bool cpu_frequency::get_frequency(cpu_frequency_type &type, unsigned long &khz,
+                                  unsigned long &khzUpper,
+                                  unsigned long &khzLower) {
+  if (!valid)
+    return false;
   std::string gov;
-  if(!get_string_from_file(path + "scaling_governor",gov))
-    {
+  if (!get_string_from_file(path + "scaling_governor", gov)) {
     return false;
-    }
+  }
   cpu_frequency_type t = get_governor_type(gov);
-  if(t == Invalid)
-    {
+  if (t == Invalid) {
     return false;
-    }
-  if(!get_number_from_file(path + "cpuinfo_cur_freq",khz))
-    {
+  }
+  if (!get_number_from_file(path + "cpuinfo_cur_freq", khz)) {
     return false;
-    }
-  if(!get_number_from_file(path + "scaling_max_freq",khzUpper))
-    {
+  }
+  if (!get_number_from_file(path + "scaling_max_freq", khzUpper)) {
     return false;
-    }
-  if(!get_number_from_file(path + "scaling_min_freq",khzLower))
-    {
+  }
+  if (!get_number_from_file(path + "scaling_min_freq", khzLower)) {
     return false;
-    }
+  }
   type = t;
   last_error = PBSE_NONE;
   return true;
-  }
+}
 
-bool cpu_frequency::set_frequency(cpu_frequency_type type,unsigned long khz,unsigned long khzUpper,unsigned long khzLower)
-  {
-  if(!valid) return false;
+bool cpu_frequency::set_frequency(cpu_frequency_type type, unsigned long khz,
+                                  unsigned long khzUpper,
+                                  unsigned long khzLower) {
+  if (!valid)
+    return false;
   bool governorAvailable = false;
   bool freqMatched = false;
   bool upperMatched = false;
   bool lowerMatched = false;
-  for(std::vector<cpu_frequency_type>::iterator i = available_governors.begin();i != available_governors.end();i++)
-    {
-    if(*i == type)
-      {
+  for (std::vector<cpu_frequency_type>::iterator i =
+           available_governors.begin();
+       i != available_governors.end(); i++) {
+    if (*i == type) {
       governorAvailable = true;
       break;
-      }
     }
-  for(std::vector<unsigned long>::iterator i = available_frequencies.begin();i != available_frequencies.end();i++)
-    {
-    if(*i == khz) freqMatched = true;
-    if(*i == khzUpper) upperMatched = true;
-    if(*i == khzLower) lowerMatched = true;
-    }
-  if(!governorAvailable || !upperMatched || !lowerMatched || !freqMatched)
-    {
+  }
+  for (std::vector<unsigned long>::iterator i = available_frequencies.begin();
+       i != available_frequencies.end(); i++) {
+    if (*i == khz)
+      freqMatched = true;
+    if (*i == khzUpper)
+      upperMatched = true;
+    if (*i == khzLower)
+      lowerMatched = true;
+  }
+  if (!governorAvailable || !upperMatched || !lowerMatched || !freqMatched) {
     last_error = PBSE_FREQUENCY_NOT_AVAILABLE;
     return false;
-    }
+  }
   std::string govString;
-  get_governor_string(type,govString);
-  if(!set_string_in_file(path + "scaling_governor",govString))
-    {
+  get_governor_string(type, govString);
+  if (!set_string_in_file(path + "scaling_governor", govString)) {
     return false;
-    }
+  }
   unsigned long currKHz;
   unsigned long currKHzUpper;
   unsigned long currKHzLower;
   cpu_frequency_type currType;
-  if(!get_frequency(currType,currKHz,currKHzUpper,currKHzLower))
-    {
+  if (!get_frequency(currType, currKHz, currKHzUpper, currKHzLower)) {
     return false;
+  }
+  if (khzUpper < currKHzLower) {
+    if (!set_number_in_file(path + "scaling_min_freq", khzLower)) {
+      return false;
     }
-  if(khzUpper < currKHzLower)
-    {
-    if(!set_number_in_file(path + "scaling_min_freq",khzLower))
-      {
+    if (!set_number_in_file(path + "scaling_max_freq", khzUpper)) {
       return false;
-      }
-    if(!set_number_in_file(path + "scaling_max_freq",khzUpper))
-      {
-      return false;
-      }
     }
-  else
-    {
-    if(!set_number_in_file(path + "scaling_max_freq",khzUpper))
-      {
+  } else {
+    if (!set_number_in_file(path + "scaling_max_freq", khzUpper)) {
       return false;
-      }
-    if(!set_number_in_file(path + "scaling_min_freq",khzLower))
-      {
-      return false;
-      }
     }
-  if(type == UserSpace)
-    {
-    if(!set_number_in_file(path + "scaling_setspeed",khz))
-      {
+    if (!set_number_in_file(path + "scaling_min_freq", khzLower)) {
       return false;
-      }
     }
+  }
+  if (type == UserSpace) {
+    if (!set_number_in_file(path + "scaling_setspeed", khz)) {
+      return false;
+    }
+  }
   return true;
-  }
+}
 
-void cpu_frequency::get_governor_string(cpu_frequency_type type,std::string& str)
-  {
-  switch(type)
-    {
-    case Performance:
-      str = "Performance";
-      break;
-    case PowerSave:
-      str = "PowerSave";
-      break;
-    case OnDemand:
-      str = "OnDemand";
-      break;
-    case Conservative:
-      str = "Conservative";
-      break;
-    case UserSpace:
-      str = "UserSpace";
-      break;
-    default:
-      str = "Unknown";
-      break;
-    }
+void cpu_frequency::get_governor_string(cpu_frequency_type type,
+                                        std::string &str) {
+  switch (type) {
+  case Performance:
+    str = "Performance";
+    break;
+  case PowerSave:
+    str = "PowerSave";
+    break;
+  case OnDemand:
+    str = "OnDemand";
+    break;
+  case Conservative:
+    str = "Conservative";
+    break;
+  case UserSpace:
+    str = "UserSpace";
+    break;
+  default:
+    str = "Unknown";
+    break;
   }
+}
 
-cpu_frequency_type cpu_frequency::get_governor_type(std::string &freq_type)
-  {
-  if(!strcasecmp(freq_type.c_str(),"Performance"))
-    {
+cpu_frequency_type cpu_frequency::get_governor_type(std::string &freq_type) {
+  if (!strcasecmp(freq_type.c_str(), "Performance")) {
     return Performance;
-    }
-  if(!strcasecmp(freq_type.c_str(),"PowerSave"))
-    {
-    return PowerSave;
-    }
-  if(!strcasecmp(freq_type.c_str(),"OnDemand"))
-    {
-    return OnDemand;
-    }
-  if(!strcasecmp(freq_type.c_str(),"Conservative"))
-    {
-    return Conservative;
-    }
-  if(!strcasecmp(freq_type.c_str(),"UserSpace"))
-    {
-    return UserSpace;
-    }
-  return Invalid;
   }
+  if (!strcasecmp(freq_type.c_str(), "PowerSave")) {
+    return PowerSave;
+  }
+  if (!strcasecmp(freq_type.c_str(), "OnDemand")) {
+    return OnDemand;
+  }
+  if (!strcasecmp(freq_type.c_str(), "Conservative")) {
+    return Conservative;
+  }
+  if (!strcasecmp(freq_type.c_str(), "UserSpace")) {
+    return UserSpace;
+  }
+  return Invalid;
+}
 
-bool cpu_frequency::get_pstate_frequency(cpu_frequency_type pstate,unsigned long& khz)
-  {
-  if(!valid) return false;
-  if(pstate > P15)
-    {
+bool cpu_frequency::get_pstate_frequency(cpu_frequency_type pstate,
+                                         unsigned long &khz) {
+  if (!valid)
+    return false;
+  if (pstate > P15) {
     last_error = PBSE_BAD_PARAMETER;
     return false;
-    }
-  if(pstate >= (cpu_frequency_type)available_frequencies.size())
-    {
+  }
+  if (pstate >= (cpu_frequency_type)available_frequencies.size()) {
     pstate = (cpu_frequency_type)(available_frequencies.size() - 1);
-    }
+  }
   khz = available_frequencies.at(pstate);
   return true;
-  }
+}
 
-bool cpu_frequency::get_nearest_available_frequency(unsigned long reqKhz,unsigned long& actualKhz)
-  {
-  if(!valid) return false;
+bool cpu_frequency::get_nearest_available_frequency(unsigned long reqKhz,
+                                                    unsigned long &actualKhz) {
+  if (!valid)
+    return false;
   long diff = -1;
   unsigned long curKhz;
-  for(std::vector<unsigned long>::iterator i = available_frequencies.begin();i != available_frequencies.end();i++)
-    {
+  for (std::vector<unsigned long>::iterator i = available_frequencies.begin();
+       i != available_frequencies.end(); i++) {
     long curDiff = (long)(reqKhz - *i);
-    if(curDiff < 0)
-      {
+    if (curDiff < 0) {
       curDiff = -curDiff;
-      }
-    if((curDiff < diff)||(diff == -1))
-      {
+    }
+    if ((curDiff < diff) || (diff == -1)) {
       diff = curDiff;
       curKhz = *i;
-      }
-    else if((curDiff == diff)&&(curKhz > *i))
-      {
+    } else if ((curDiff == diff) && (curKhz > *i)) {
       curKhz = *i;
-      }
     }
-  if(diff == -1)
-    {
+  }
+  if (diff == -1) {
     last_error = PBSE_NO_MATCHING_FREQUENCY;
     return false;
-    }
+  }
   actualKhz = curKhz;
   return true;
-  }
+}
 
-bool cpu_frequency::is_governor_available(cpu_frequency_type governor)
-  {
-  if(!valid) return false;
-  for(std::vector<cpu_frequency_type>::iterator i = available_governors.begin();i != available_governors.end();i++)
-    {
-    if(*i == governor)
-      {
+bool cpu_frequency::is_governor_available(cpu_frequency_type governor) {
+  if (!valid)
+    return false;
+  for (std::vector<cpu_frequency_type>::iterator i =
+           available_governors.begin();
+       i != available_governors.end(); i++) {
+    if (*i == governor) {
       return true;
-      }
     }
-  return false;
   }
-
-
+  return false;
+}

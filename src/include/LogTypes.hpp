@@ -23,18 +23,18 @@ namespace Torque {
  * These are bitmask values used for filtering.
  */
 enum class EventType : uint32_t {
-    Error        = 0x0001,
-    System       = 0x0002,
-    Admin        = 0x0004,
-    Job          = 0x0008,
-    Usage        = 0x0010,
-    Security     = 0x0020,
-    Sched        = 0x0040,
-    Debug        = 0x0080,
-    Debug2       = 0x0100,
-    ClientAuth   = 0x0200,
-    Syslog       = 0x0400,
-    Force        = 0x8000
+  Error = 0x0001,
+  System = 0x0002,
+  Admin = 0x0004,
+  Job = 0x0008,
+  Usage = 0x0010,
+  Security = 0x0020,
+  Sched = 0x0040,
+  Debug = 0x0080,
+  Debug2 = 0x0100,
+  ClientAuth = 0x0200,
+  Syslog = 0x0400,
+  Force = 0x8000
 };
 
 /**
@@ -42,14 +42,14 @@ enum class EventType : uint32_t {
  * Identifies the subsystem generating the log.
  */
 enum class EventClass : uint16_t {
-    Server   = 1,
-    Queue    = 2,
-    Job      = 3,
-    Request  = 4,
-    File     = 5,
-    Acct     = 6,
-    Node     = 7,
-    Track    = 8
+  Server = 1,
+  Queue = 2,
+  Job = 3,
+  Request = 4,
+  File = 5,
+  Acct = 6,
+  Node = 7,
+  Track = 8
 };
 
 /**
@@ -57,8 +57,8 @@ enum class EventClass : uint16_t {
  * Useful for validate_path_security calls.
  */
 enum class LogSecurity : int {
-    Strict  = S_IWOTH | S_IWGRP, // Disallow world and group write
-    Default = S_IWOTH            // Disallow world write
+  Strict = S_IWOTH | S_IWGRP, // Disallow world and group write
+  Default = S_IWOTH           // Disallow world write
 };
 
 } // namespace Torque

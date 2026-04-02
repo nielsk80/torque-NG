@@ -1,61 +1,53 @@
-# --- resmom Component Build ---
+# src/resmom/CMakeLists.txt
+# torque-NG: Resource Manager MOM (Node Daemon)
+#
+# Copyright (c) 2026 Kenneth Nielson.
+# All rights reserved.
 
-# 1. Find Hardware Locality (Essential for your 20-core hybrid setup)
-find_package(PkgConfig REQUIRED)
-pkg_check_modules(HWLOC REQUIRED hwloc)
+cmake_minimum_required(VERSION 3.10)
 
-# 2. Find Security & Communication Dependencies
-find_package(OpenSSL REQUIRED)
-find_package(LibXml2 REQUIRED)
+# 1. External Dependencies
 find_package(Threads REQUIRED)
+find_package(Protobuf REQUIRED)
+# Boost is required for Asio and Coroutine support
+find_package(Boost REQUIRED COMPONENTS system)
 
-# 3. Source Files
-# We include the legacy C files and your new C++ Modernization files
-set(RESMOM_SOURCES
-    mom_main.c
-    mom_server.c
-    requests.c
-    start_exec.c
-    # Add your new C++ files here as you create them:
-    # ResourceManager.cpp
-    # HardwareTopology.cpp
+# 2. Define the MOM Executable
+add_executable(mom_ng
+    mom_ng_main.cpp
+    # Add other modernized files as they are finalized
+    # ProcessManager.cpp
+    # JobOutputHandler.cpp
 )
 
-# 4. Define the Executable
-add_executable(pbs_mom ${RESMOM_SOURCES})
+# 3. Compiler Configuration
+target_compile_features(mom_ng PRIVATE cxx_std_20)
 
-# 5. Include Directories
-# We point to the root include folder, the local directory, and dependency headers
-target_include_directories(pbs_mom PRIVATE 
-    ${CMAKE_SOURCE_DIR}/src/include
-    ${CMAKE_CURRENT_SOURCE_DIR}
-    ${HWLOC_INCLUDE_DIRS}
-    ${OPENSSL_INCLUDE_DIR}
-    ${LIBXML2_INCLUDE_DIR}
+# GCC 10/11 often requires -fcoroutines to enable the feature for C++20
+if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+    target_compile_options(mom_ng PRIVATE -fcoroutines)
+endif()
+
+# 4. Header Management
+target_include_directories(mom_ng PRIVATE 
+    ${PROJECT_SOURCE_DIR}/src           # For #include "resmom/..."
+    ${PROJECT_SOURCE_DIR}/src/include   # For #include "log.h"
+    ${CMAKE_BINARY_DIR}/src             # For #include "proto/tm_messages.pb.h"
 )
 
-# 6. Preprocessor Definitions (The "Config" Bridge)
-# These flags tell the legacy code how to behave without the old Autotools config.h
-target_compile_definitions(pbs_mom PRIVATE 
-    PBS_MOM 
-    _GNU_SOURCE 
-    NUMA_SUPPORT
-    TORQUE_HOME="/var/spool/torque"
+# 5. Dependency Linking
+# We link to the standardized "Lib" targets we defined in the other CMake files
+target_link_libraries(mom_ng
+    PRIVATE
+    Libproto        # Generated Protobuf classes
+    Libcommon       # Node and Job managers
+    Liblog          # Modern logging and security checks
+    Libnet          # Asynchronous networking
+    Libutils        # Hardware topology and cgroups
+    ${Protobuf_LIBRARIES}
+    Boost::boost
+    Threads::Threads
 )
 
-# 7. Linking
-# We link the logger we built in the previous step plus the system libs
-target_link_libraries(pbs_mom 
-    torque_log      # Our modernized C++ log wrapper
-    ${HWLOC_LIBRARIES}
-    OpenSSL::SSL 
-    OpenSSL::Crypto
-    LibXml2::LibXml2
-    ${CMAKE_THREAD_LIBS_INIT}
-    m               # Math library
-)
-
-# 8. Modernization Safety (Optional but recommended for your exercise)
-# This helps find memory leaks in the legacy C code immediately
-target_compile_options(pbs_mom PRIVATE -fsanitize=address -g)
-target_link_options(pbs_mom PRIVATE -fsanitize=address)
+# 6. Installation (Standard Spanish Fork /var/spool/torque paths)
+install(TARGETS mom_ng DESTINATION sbin)

@@ -1,24 +1,35 @@
+# torque-NG: Common Management Logic
+# Copyright (c) 2026 Kenneth Nielson.
+# Portions Copyright (c) 1999-2000 Veridian Information Solutions, Inc.
+# Licensed under the OpenPBS v2.3 Software License.
+
+cmake_minimum_required(VERSION 3.10)
+
+# 1. External Dependencies
 find_package(Threads REQUIRED)
 
-# We do NOT call protobuf_generate_cpp here because 
-# torque_proto_logic (in src/lib/Libproto) is already doing it.
-
-add_library(torque_common 
+# 2. Define the Library
+# We list the sources directly to ensure the build is explicit.
+add_library(Libcommon STATIC 
     NodeStatusManager.cpp 
     JobQueueManager.cpp 
     JobIndexManager.cpp
 )
 
-# Include directories so the Managers can find torque_ng.pb.h
-target_include_directories(torque_common PUBLIC 
+# 3. Header Management
+# PUBLIC ensures that mom_ng and tests can find these headers.
+target_include_directories(Libcommon PUBLIC 
     ${CMAKE_CURRENT_SOURCE_DIR}
-    # This points to where Libproto's generated headers are located
-    ${CMAKE_BINARY_DIR}/src/lib/Libproto
+    ${PROJECT_SOURCE_DIR}/src/include
+    ${CMAKE_BINARY_DIR}/src             # For #include "proto/tm_messages.pb.h"
 )
 
-# Link against the library that already contains the Compiled Protos
-target_link_libraries(torque_common PUBLIC 
+# 4. Dependency Linking
+# Linking to standardized Lib* targets
+target_link_libraries(Libcommon PUBLIC 
+    Libproto
     torque_proto_logic
+    Liblog
     Threads::Threads
     ${Protobuf_LIBRARIES}
 )

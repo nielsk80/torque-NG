@@ -79,36 +79,30 @@
  * without reference to its choice of law rules.
  */
 
-#include <vector>
-#include <string>
 #include "attribute.h"
 #include "pbs_error.h"
 #include "sys_file.hpp"
-
+#include <string>
+#include <vector>
 
 /* The reference for this file is
  *  https://www.kernel.org/doc/Documentation/cpu-freq/user-guide.txt
  */
 
-class power_state : public sys_file
-  {
+class power_state : public sys_file {
 private:
+  std::string path; // Path to power state directory
 
-  std::string path;                    //Path to power state directory
+  bool valid; // This is set to true if all values are loaded.
 
-  bool valid;                        //This is set to true if all values are loaded.
-
-  std::vector<std::string> available_power_states; //List of available power states
+  std::vector<std::string>
+      available_power_states; // List of available power states
 
 public:
-
   power_state();
   bool is_valid_power_state(int power_state);
   void set_power_state(int power_state);
-  bool is_valid()
-    {
-    return valid;
-    }
-  };
+  bool is_valid() { return valid; }
+};
 
 #endif /* CPU_FREQUENCY_HPP */

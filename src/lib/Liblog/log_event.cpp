@@ -11,8 +11,9 @@
 
 namespace torque_ng {
 
-void log_event(Torque::EventType type, Torque::EventClass cls, std::string_view name, std::string_view text) {
-    SafeLog::getInstance().record(type, cls, name, text);
+void log_event(Torque::EventType type, Torque::EventClass cls,
+               std::string_view name, std::string_view text) {
+  SafeLog::getInstance().record(type, cls, name, text);
 }
 
 } // namespace torque_ng

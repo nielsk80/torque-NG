@@ -1,21 +1,27 @@
-# 1. Define the test executable (Test code only)
+# torque-NG: Libutils Unit Tests
+# Copyright (c) 2026 Kenneth Nielson.
+# Licensed under the OpenPBS v2.3 Software License.
+
+# 1. Define the test executable
 add_executable(test_resource_parser TestResourceParser.cpp)
 
 # 2. Include directories
 target_include_directories(test_resource_parser PRIVATE 
     ${CMAKE_SOURCE_DIR}/src/lib/Libutils
-    ${CMAKE_BINARY_DIR}/src/proto
+    ${PROJECT_SOURCE_DIR}/src/include
+    ${CMAKE_BINARY_DIR}/src             # For #include "proto/torque_ng.pb.h"
 )
 
-# 3. Link against the library you just showed me
-# Use 'utils_ng' as defined in src/lib/Libutils/CMakeLists.txt
+# 3. Linkage Configuration
+# Standardized to use the new Lib* target names
 target_link_libraries(test_resource_parser PRIVATE 
-    utils_ng
-    torque_proto
-    protobuf::libprotobuf
+    Libutils
+    Libproto
+    Liblog
+    ${Protobuf_LIBRARIES}
     Threads::Threads
 )
 
 # 4. Standard and Registration
-target_compile_features(test_resource_parser PRIVATE cxx_std_17)
-add_test(NAME ResourceParserTest COMMAND test_resource_parser)
+target_compile_features(test_resource_parser PRIVATE cxx_std_20)
+add_test(NAME Libutils_ResourceParserTest COMMAND test_resource_parser)
