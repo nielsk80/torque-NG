@@ -1,90 +1,128 @@
-/**
- * @file test_async_conn.cpp
- * @brief Unit test for Coroutine-based Protobuf networking.
+/*
+ * torque-NG: Next Generation Resource Manager
  *
  * Copyright (c) 2026 Kenneth Nielson.
+ * Portions Copyright (c) 1999-2000 Veridian Information Solutions, Inc.
+ * All rights reserved.
+ *
  * Licensed under the OpenPBS v2.3 Software License.
+ * See the LICENSE file in the project root for full license details.
+ *
+ * SPDX-License-Identifier: OpenPBS-2.3
  */
 
-#include "Libnet/AsyncConnection.hpp"
-#include "proto/tm_messages.pb.h"
+#include "AsyncConnection.hpp"
+#include "TorqueErrors.hpp"
 #include <boost/asio.hpp>
-#include <chrono>
 #include <gtest/gtest.h>
+#include <vector>
+#include <string>
+#include <memory>
 
+// Use the modernized namespaces defined in the Libnet refactor [cite: 921, 966]
+using namespace torque_ng::Libnet;
 namespace asio = boost::asio;
-using namespace torque_ng::net;
-using namespace torque_ng::tm;
+using asio::ip::tcp;
 
-// Server coroutine remains largely the same, but we ensure references remain
-// valid
-asio::awaitable<void> run_server(asio::ip::tcp::acceptor &acceptor,
-                                 std::string &received_id) {
-  try {
+/**
+ * @brief Helper to simulate a server that echoes back data.
+ * Utilizes the new RecvAwaiter and SendAwaiter patterns.
+ */
+asio::awaitable<void> run_echo_server(tcp::acceptor& acceptor) {
     auto socket = co_await acceptor.async_accept(asio::use_awaitable);
-    AsyncConnection conn(std::move(socket));
+    AsyncConnection conn(std::move(socket)); // [cite: 925]
 
-    TmRequest req;
-    co_await conn.receive_message(req);
-
-    if (req.has_spawn_task()) {
-      received_id = req.spawn_task().job_id();
+    std::vector<uint8_t> buffer;
+    
+    // Stage 1: Receive raw bytes using the new coroutine awaiter.
+    // This includes the 100MB safety check internally[cite: 934, 940].
+    Torque::ErrorCode recv_ec = co_await conn.recv_async(buffer); // [cite: 964]
+    
+    if (recv_ec == Torque::ErrorCode::None) {
+        // Stage 2: Echo the same bytes back to the client[cite: 950].
+        co_await conn.send_async(buffer);
     }
-
-    TmResponse resp;
-    resp.set_success(true);
-    co_await conn.send_message(resp);
-  } catch (const std::exception &e) {
-    GTEST_LOG_(ERROR) << "Server error: " << e.what();
-  }
 }
 
-TEST(AsyncConnectionTest, SendReceiveProtobuf) {
-  asio::io_context ctx;
-  const std::string test_job_id = "123.spanish-fork";
-  std::string received_id = "";
+/**
+ * @class AsyncConnectionTest
+ * @brief Test fixture for Network-level async connection testing.
+ */
+class AsyncConnectionTest : public ::testing::Test {
+protected:
+    asio::io_context io_ctx;
+};
 
-  // Open acceptor on localhost with an ephemeral port
-  asio::ip::tcp::acceptor acceptor(ctx, {asio::ip::tcp::v4(), 0});
-  auto port = acceptor.local_endpoint().port();
+/**
+ * @brief Test: Verify basic data integrity through the echo server.
+ */
+TEST_F(AsyncConnectionTest, BasicSendAndReceive) {
+    tcp::acceptor acceptor(io_ctx, tcp::endpoint(tcp::v4(), 0));
+    unsigned short port = acceptor.local_endpoint().port();
 
-  // 1. Start Server Coroutine
-  // We pass the acceptor and received_id by reference since they live for the
-  // duration of the test
-  asio::co_spawn(ctx, run_server(acceptor, received_id), asio::detached);
+    std::string test_data = "torque-NG-test-payload";
+    std::vector<uint8_t> send_buf(test_data.begin(), test_data.end());
+    std::vector<uint8_t> recv_buf;
 
-  // 2. Start Client Coroutine
-  // FIX: Pass the lambda as a factory to co_spawn rather than calling it
-  // immediately. This allows Asio to copy/move the lambda into the coroutine's
-  // stable memory state.
-  asio::co_spawn(
-      ctx,
-      [port, test_job_id, &received_id, &ctx]() -> asio::awaitable<void> {
-        try {
-          asio::ip::tcp::socket socket(ctx);
-          asio::ip::tcp::endpoint endpoint(
-              asio::ip::address::from_string("127.0.0.1"), port);
+    // Launch server coroutine
+    asio::co_spawn(io_ctx, run_echo_server(acceptor), asio::detached);
 
-          co_await socket.async_connect(endpoint, asio::use_awaitable);
+    // Run client logic in another coroutine
+    asio::co_spawn(io_ctx, [&]() -> asio::awaitable<void> {
+        tcp::socket socket(io_ctx);
+        co_await socket.async_connect(
+            tcp::endpoint(asio::ip::make_address("127.0.0.1"), port), 
+            asio::use_awaitable);
 
-          AsyncConnection conn(std::move(socket));
+        AsyncConnection conn(std::move(socket)); // [cite: 925]
 
-          TmRequest req;
-          req.mutable_spawn_task()->set_job_id(test_job_id);
-          co_await conn.send_message(req);
+        // Test sending via the new SendAwaiter [cite: 950]
+        Torque::ErrorCode send_ec = co_await conn.send_async(send_buf);
+        EXPECT_EQ(send_ec, Torque::ErrorCode::None);
 
-          TmResponse resp;
-          co_await conn.receive_message(resp);
-          EXPECT_TRUE(resp.success());
-        } catch (const std::exception &e) {
-          GTEST_LOG_(ERROR) << "Client error: " << e.what();
-        }
-      },
-      asio::detached);
+        // Test receiving via the new RecvAwaiter [cite: 964]
+        Torque::ErrorCode recv_ec = co_await conn.recv_async(recv_buf);
+        EXPECT_EQ(recv_ec, Torque::ErrorCode::None);
 
-  // Run the event loop. In Spanish Fork, we want to ensure
-  // we give the coroutines enough time to complete the handshake.
-  ctx.run_for(std::chrono::seconds(2));
+        // Verify data integrity
+        std::string result_data(recv_buf.begin(), recv_buf.end());
+        EXPECT_EQ(test_data, result_data);
 
-  EXPECT_EQ(test_job_id, received_id);
+        co_return;
+    }, asio::detached);
+
+    io_ctx.run();
+}
+
+/**
+ * @brief Test: Ensure the 100MB safety limit is enforced.
+ * This verifies the protection against bad_alloc from corrupt headers[cite: 940].
+ */
+TEST_F(AsyncConnectionTest, RejectsExcessiveMessageSize) {
+    tcp::acceptor acceptor(io_ctx, tcp::endpoint(tcp::v4(), 0));
+    unsigned short port = acceptor.local_endpoint().port();
+
+    asio::co_spawn(io_ctx, [&]() -> asio::awaitable<void> {
+        auto socket = co_await acceptor.async_accept(asio::use_awaitable);
+        AsyncConnection conn(std::move(socket));
+        
+        std::vector<uint8_t> data;
+        Torque::ErrorCode ec = co_await conn.recv_async(data); // [cite: 964]
+        
+        // Expect ProtocolError because we will send a fake header > 100MB [cite: 940]
+        EXPECT_EQ(ec, Torque::ErrorCode::ProtocolError); 
+    }, asio::detached);
+
+    asio::co_spawn(io_ctx, [&]() -> asio::awaitable<void> {
+        tcp::socket socket(io_ctx);
+        co_await socket.async_connect(
+            tcp::endpoint(asio::ip::make_address("127.0.0.1"), port), 
+            asio::use_awaitable);
+
+        // Send a bad header: 200MB (in Network Byte Order) [cite: 940]
+        uint32_t bad_len = htonl(200 * 1024 * 1024);
+        co_await asio::async_write(socket, asio::buffer(&bad_len, 4), asio::use_awaitable);
+    }, asio::detached);
+
+    io_ctx.run();
 }

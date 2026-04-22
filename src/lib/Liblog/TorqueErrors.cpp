@@ -16,7 +16,7 @@
 
 namespace Torque {
 
-std::string_view to_string(ErrorCode ec) {
+std::string_view get_error_description(ErrorCode ec) {
   // The "Database" remains local to this translation unit
   static const std::unordered_map<ErrorCode, std::string_view> error_db = {
       {ErrorCode::None, "no error"},
@@ -30,7 +30,9 @@ std::string_view to_string(ErrorCode ec) {
       {ErrorCode::CgroupFail, "Could not create cgroups for this job"},
       {ErrorCode::RmUnknown, "Resource unknown"},
       {ErrorCode::RmBadParam, "Parameter could not be used"},
-      {ErrorCode::RmNoConnect, "Could not connect to resource manager"}};
+      {ErrorCode::RmNoConnect, "Could not connect to resource manager"},
+      {ErrorCode::NetworkError, "Network error"}};
+      
 
   auto it = error_db.find(ec);
   return (it != error_db.end()) ? it->second : "Unknown Torque Error Code";

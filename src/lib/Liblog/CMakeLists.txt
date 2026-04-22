@@ -10,6 +10,7 @@ set(LIBLOG_SOURCES
     log_event.cpp
     setup_env.cpp
     pbs_messages.cpp
+    TorqueErrors.cpp
 )
 
 # 2. Create the static library

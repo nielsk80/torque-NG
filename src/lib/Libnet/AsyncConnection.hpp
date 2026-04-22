@@ -2,85 +2,120 @@
  * torque-NG: Next Generation Resource Manager
  *
  * Copyright (c) 2026 Kenneth Nielson.
+ * Portions Copyright (c) 1999-2000 Veridian Information Solutions, Inc.
+ * All rights reserved.
+ *
  * Licensed under the OpenPBS v2.3 Software License.
- */
-
-/**
- * @file AsyncConnection.hpp
- * @brief Coroutine-based wrapper for Protobuf-over-TCP communication.
+ * See the LICENSE file in the project root for full license details.
+ *
+ * SPDX-License-Identifier: OpenPBS-2.3
  */
 
 #pragma once
 
+#include "NetTask.hpp"
+#include "TorqueErrors.hpp"
 #include <boost/asio.hpp>
+#include <boost/asio/awaitable.hpp>
+#include <boost/asio/use_awaitable.hpp>
+#include <arpa/inet.h> // For ntohl/htonl
 #include <cstdint>
-#include <google/protobuf/message.h>
+#include <memory>
 #include <vector>
 
 namespace asio = boost::asio;
-using asio::ip::tcp;
 
-namespace torque_ng::net {
+namespace torque_ng::Libnet {
 
+/**
+ * @class AsyncConnection
+ * @brief Manages a single TCP connection using Boost.Asio coroutines.
+ * * This class handles the low-level framing for torque-NG communication,
+ * ensuring that all messages are length-prefixed and subject to
+ * safety size constraints.
+ */
 class AsyncConnection {
-  tcp::socket socket_;
-
 public:
-  explicit AsyncConnection(tcp::socket socket) : socket_(std::move(socket)) {}
+    /**
+     * @brief Constructor takes ownership of a connected socket.
+     */
+    explicit AsyncConnection(asio::ip::tcp::socket socket) 
+        : m_socket(std::move(socket)) {}
 
-  /**
-   * @brief Sends a Protobuf message asynchronously with a length prefix.
-   */
-  asio::awaitable<void> send_message(const google::protobuf::Message &message) {
-    // 1. Serialize to a string
-    std::string payload;
-    if (!message.SerializeToString(&payload)) {
-      throw std::runtime_error("Failed to serialize Protobuf message");
+    /**
+     * @brief Initiates an asynchronous receive operation.
+     * * Performs a two-stage read:
+     * 1. Reads a 4-byte network-byte-order length header.
+     * 2. Validates the size (100MB limit) to prevent memory exhaustion.
+     * 3. Reads the actual payload into the provided buffer.
+     * * @param out_data Vector to be resized and filled with received bytes.
+     * @return asio::awaitable<Torque::ErrorCode> Success or specific Network/Protocol error.
+     */
+    asio::awaitable<Torque::ErrorCode> recv_async(std::vector<uint8_t>& out_data) {
+        try {
+            uint32_t msg_len_nbo = 0;
+            
+            // Stage 1: Read the 4-byte length header
+            co_await asio::async_read(m_socket, 
+                                      asio::buffer(&msg_len_nbo, sizeof(uint32_t)), 
+                                      asio::use_awaitable);
+
+            uint32_t msg_len = ntohl(msg_len_nbo);
+
+            // HPC Safety: 100MB sanity check to prevent bad_alloc from corrupt headers
+            if (msg_len > 104857600) { 
+                co_return Torque::ErrorCode::ProtocolError;
+            }
+
+            out_data.resize(msg_len);
+
+            // Stage 2: Read the actual message body
+            co_await asio::async_read(m_socket, 
+                                      asio::buffer(out_data), 
+                                      asio::use_awaitable);
+
+            co_return Torque::ErrorCode::None;
+        } catch (const std::system_error& /*e*/) {
+            co_return Torque::ErrorCode::NetworkError;
+        } catch (...) {
+            co_return Torque::ErrorCode::Internal;
+        }
     }
 
-    // 2. Create a single buffer containing both Header and Payload
-    // We use a vector or a string that will stay alive during the co_await
-    uint32_t len_h = htonl(static_cast<uint32_t>(payload.size()));
+    /**
+     * @brief Initiates an asynchronous send operation.
+     * * Automatically prepends the 4-byte length header before the payload
+     * to ensure the remote end can frame the message correctly.
+     * * @param data The raw bytes to transmit.
+     * @return asio::awaitable<Torque::ErrorCode> Success or NetworkError.
+     */
+    asio::awaitable<Torque::ErrorCode> send_async(const std::vector<uint8_t>& data) {
+        try {
+            uint32_t len_nbo = htonl(static_cast<uint32_t>(data.size()));
+            
+            // Create a scatter-gather buffer sequence to send header and data in one go
+            std::array<asio::const_buffer, 2> buffers = {
+                asio::buffer(&len_nbo, sizeof(len_nbo)),
+                asio::buffer(data)
+            };
 
-    std::string full_packet;
-    full_packet.reserve(sizeof(len_h) + payload.size());
-
-    // Append 4-byte header
-    full_packet.append(reinterpret_cast<const char *>(&len_h), sizeof(len_h));
-    // Append payload
-    full_packet.append(payload);
-
-    // 3. Write the consolidated packet
-    // Asio's use_awaitable will keep full_packet alive if it's a local
-    // coroutine variable, but the scatter-gather pointers were likely the
-    // source of the SegFault.
-    co_await asio::async_write(socket_, asio::buffer(full_packet),
-                               asio::use_awaitable);
-  }
-
-  /**
-   * @brief Reads a Protobuf message asynchronously.
-   */
-  asio::awaitable<void> receive_message(google::protobuf::Message &message) {
-    // 1. Read the 4-byte length header
-    uint32_t len_nbo = 0;
-    co_await asio::async_read(socket_, asio::buffer(&len_nbo, sizeof(len_nbo)),
-                              asio::use_awaitable);
-    uint32_t len = ntohl(len_nbo);
-
-    // 2. Read the actual payload
-    std::string payload;
-    payload.resize(len);
-    co_await asio::async_read(socket_, asio::buffer(payload),
-                              asio::use_awaitable);
-
-    // 3. Parse back into the Protobuf object
-    if (!message.ParseFromString(payload)) {
-      throw std::runtime_error("Failed to parse incoming Protobuf message");
+            co_await asio::async_write(m_socket, buffers, asio::use_awaitable);
+            
+            co_return Torque::ErrorCode::None;
+        } catch (const std::system_error& /*e*/) {
+            co_return Torque::ErrorCode::NetworkError;
+        }
     }
-  }
 
-  tcp::socket &socket() { return socket_; }
+    /**
+     * @brief Returns a reference to the underlying Asio socket.
+     */
+    asio::ip::tcp::socket& socket() { 
+        return m_socket; 
+    }
+
+private:
+    asio::ip::tcp::socket m_socket;
 };
 
-} // namespace torque_ng::net
+} // namespace torque_ng::Libnet

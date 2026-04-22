@@ -16,6 +16,7 @@ enable_testing()
 # 1. Find Protobuf globally
 find_package(Protobuf REQUIRED)
 find_package(GTest REQUIRED)
+find_package(Boost 1.83 REQUIRED COMPONENTS system)
 
 include_directories(${GTEST_INCLUDE_DIRS})
 
@@ -28,6 +29,7 @@ add_subdirectory(src/lib/Libnet)
 add_subdirectory(src/lib/Libproto)
 add_subdirectory(src/lib/Libcommon)
 add_subdirectory(src/resmom)
+add_subdirectory(src/server)
 add_subdirectory(tests/lib/Libproto)
 add_subdirectory(tests/proto)
 add_subdirectory(tests/lib/Libutils)

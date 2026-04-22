@@ -85,6 +85,7 @@ enum class [[nodiscard]] ErrorCode : int32_t {
   NodeExists = 15066,           // PBSE_NODEEXIST
   BadNodeAttrValue = 15067,     // PBSE_BADNDATVAL
   CgroupFail = 15082,           // torque-specific
+  NetworkError = 15090,         // PBSE_NETWORK_ERROR
 
   // RM Errors (15200+)
   RmUnknown = 15201,
@@ -223,7 +224,9 @@ enum class [[nodiscard]] ErrorCode : int32_t {
     return "PBSE_BADNDATVAL";
   case ErrorCode::CgroupFail:
     return "TORQUE_CGROUP_FAIL";
-
+  case ErrorCode::NetworkError:
+    return "PBSE_NETWORK_ERROR";
+  
   // RM Errors
   case ErrorCode::RmUnknown:
     return "RM_ERR_UNKNOWN";
@@ -242,5 +245,11 @@ enum class [[nodiscard]] ErrorCode : int32_t {
     return "PBSE_UNKNOWN_ERROR";
   }
 }
+
+/**
+     * @brief Returns a detailed human-readable description of the error.
+     * Implementation is in TorqueErrors.cpp.
+     */
+    std::string_view get_error_description(ErrorCode ec); 
 
 } // namespace Torque
