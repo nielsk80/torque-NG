@@ -9,6 +9,9 @@ project(torque-NG-Libnet LANGUAGES CXX)
 # Standardized to Libnet so mom_ng can find it
 add_library(Libnet STATIC 
     NetworkManager.cpp
+    message_codec.cpp
+    MessageFactory.cpp
+    MessageListener.cpp
     # Add AsyncConnection.cpp here if you've created it
 )
 
